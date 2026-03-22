@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
-    <title>iPad StandBy</title>
+    <title>iPad StandBy Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
     
@@ -28,11 +28,8 @@
         #dark-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: -1; }
 
         #app-container {
-            display: grid;
-            width: 100vw;
-            height: 100vh;
-            padding: var(--padding-edge);
-            gap: var(--gap);
+            display: grid; width: 100vw; height: 100vh;
+            padding: var(--padding-edge); gap: var(--gap);
         }
 
         @media (orientation: landscape) {
@@ -52,39 +49,26 @@
         }
 
         .widget {
-            background: var(--glass);
-            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-            border: 1px solid var(--glass-border);
-            border-radius: 32px;
+            background: var(--glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border); border-radius: 32px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            overflow: hidden;
+            padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;
         }
 
         #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .digital-time { line-height: 1; text-align: center; }
-
         canvas { width: 100%; height: 100%; display: block; }
 
-        /* Weather */
         #weather-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 5px; }
         #temp { font-size: 3.5rem; font-weight: 300; line-height: 1; }
         #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
         #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
 
-        /* Calendar */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 90%; text-align: center; font-size: 0.9rem; }
         .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; }
         .day-header { display: flex; align-items: center; justify-content: center; height: 24px; opacity: 0.4; font-weight: bold; font-size: 0.75rem; }
-        .today-circle {
-            background: #fff; color: #000;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-weight: 600;
-        }
+        .today-circle { background: #fff; color: #000; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
 
-        /* Settings */
         #settings-btn { position: fixed; bottom: 25px; right: 25px; background: var(--glass); border: 1px solid var(--glass-border); color: #fff; padding: 14px; border-radius: 50%; font-size: 1.6rem; z-index: 1000; cursor: pointer; }
         #settings-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1001; backdrop-filter: blur(15px); }
         .modal-content { background: #1c1c1e; width: 90%; max-width: 500px; max-height: 85vh; border-radius: 30px; padding: 30px; overflow-y: auto; border: 1px solid #38383a; position: relative; }
@@ -96,12 +80,16 @@
         .preview-card { background: #2c2c2e; border: 2px solid transparent; border-radius: 14px; padding: 14px; text-align: center; font-size: 0.85rem; cursor: pointer; }
         .preview-card.active { border-color: #0a84ff; background: #3a3a3c; }
         .toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #38383a; }
+        
         .switch { position: relative; width: 48px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; inset: 0; background-color: #39393d; border-radius: 34px; cursor: pointer; transition: .3s; }
         .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(22px); }
+        
+        #wp-status { display: block; margin-top: 8px; font-size: 0.85rem; height: 1.2rem; transition: color 0.3s; }
+        .status-success { color: #34c759; font-weight: 600; }
         #apply-btn { width: 100%; padding: 18px; border-radius: 16px; background: #0a84ff; color: #fff; border: none; font-weight: 600; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
@@ -133,6 +121,7 @@
             <div class="setting-section">
                 <h3>Wallpaper</h3>
                 <input type="file" id="wp-input" accept="image/*" style="width:100%; color:white;">
+                <span id="wp-status"></span>
             </div>
             <div class="setting-section">
                 <h3>Clock Style</h3>
@@ -173,14 +162,11 @@
         };
 
         const weatherIconMap = {
-            0: '☀️', 1: '🌤️', 2: '🌤️', 3: '🌤️', 45: '🌫️', 48: '🌫️',
-            51: '🌦️', 53: '🌦️', 55: '🌦️', 56: '🌦️', 57: '🌦️', 61: '🌦️', 63: '🌦️', 65: '🌦️', 66: '🌦️', 67: '🌦️',
-            71: '❄️', 73: '❄️', 75: '❄️', 77: '❄️', 80: '🌧️', 81: '🌧️', 82: '🌧️', 95: '⛈️', 96: '⛈️', 99: '⛈️'
+            0:'☀️',1:'🌤️',2:'🌤️',3:'🌤️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',56:'🌦️',57:'🌦️',61:'🌦️',63:'🌦️',65:'🌦️',66:'🌦️',67:'🌦️',71:'❄️',73:'❄️',75:'❄️',77:'❄️',80:'🌧️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'
         };
+        const weatherTextMap = { 0:"Clear Sky",1:"Mainly Clear",2:"Partly Cloudy",3:"Overcast",45:"Foggy",48:"Dense Fog",51:"Drizzle",61:"Rainy",71:"Snowy",81:"Showers",95:"Stormy" };
 
-        const weatherTextMap = { 0: "Clear Sky", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast", 45: "Foggy", 48: "Dense Fog", 51: "Drizzle", 61: "Rainy", 71: "Snowy", 81: "Showers", 95: "Stormy" };
-
-        /** PRECISION TICK & DATE REFRESH **/
+        /** CLOCK & MIDNIGHT REFRESH **/
         function startClock() {
             const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); };
             tick();
@@ -189,12 +175,7 @@
         function scheduleMidnightRefresh() {
             const now = new Date();
             const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-            const msUntilMidnight = tomorrow - now;
-            setTimeout(() => {
-                updateCalendar();
-                updateClock();
-                scheduleMidnightRefresh();
-            }, msUntilMidnight);
+            setTimeout(() => { updateCalendar(); updateClock(); scheduleMidnightRefresh(); }, tomorrow - now);
         }
 
         /** WAKE LOCK **/
@@ -202,14 +183,14 @@
         async function getWakeLock() {
             if ('wakeLock' in navigator) {
                 try {
-                    if (wakeLock !== null) { await wakeLock.release(); wakeLock = null; }
+                    if (wakeLock) { await wakeLock.release(); wakeLock = null; }
                     wakeLock = await navigator.wakeLock.request('screen');
                 } catch (e) {}
             }
         }
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') getWakeLock(); });
 
-        /** CANVAS CLOCK ENGINE **/
+        /** ANALOGUE CANVAS **/
         let clockCanvas, ctx, resizeObserver;
         function initAnalogueCanvas() {
             if (!clockCanvas) { clockCanvas = document.createElement('canvas'); ctx = clockCanvas.getContext('2d'); }
@@ -235,25 +216,12 @@
             ctx.clearRect(0, 0, w, h); ctx.save(); ctx.translate(w / 2, h / 2); ctx.lineCap = 'round';
             ctx.save();
             if (state.face === 'outlined') {
-                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2);
-                ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2 * dpr; ctx.stroke();
-                for (let i = 0; i < 12; i++) {
-                    ctx.rotate(Math.PI / 6); ctx.beginPath();
-                    ctx.moveTo(0, -radius + (12 * dpr)); ctx.lineTo(0, -radius + (2 * dpr)); ctx.stroke();
-                }
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2 * dpr; ctx.stroke();
+                for (let i = 0; i < 12; i++) { ctx.rotate(Math.PI / 6); ctx.beginPath(); ctx.moveTo(0, -radius + (12 * dpr)); ctx.lineTo(0, -radius + (2 * dpr)); ctx.stroke(); }
             } else if (state.face === 'classic') {
-                ctx.fillStyle = '#fff'; ctx.font = `bold ${radius * 0.18}px Inter`;
-                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                for (let i = 1; i <= 12; i++) {
-                    const ang = i * Math.PI / 6;
-                    ctx.fillText(i.toString(), radius * 0.82 * Math.sin(ang), -radius * 0.82 * Math.cos(ang));
-                }
-                for (let i = 0; i < 60; i++) {
-                    ctx.rotate(Math.PI / 30); ctx.beginPath();
-                    ctx.moveTo(0, -radius); ctx.lineTo(0, -radius + (i % 5 === 0 ? 12 : 5) * dpr);
-                    ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)';
-                    ctx.lineWidth = 1.5 * dpr; ctx.stroke();
-                }
+                ctx.fillStyle = '#fff'; ctx.font = `bold ${radius * 0.18}px Inter`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                for (let i = 1; i <= 12; i++) { const ang = i * Math.PI / 6; ctx.fillText(i.toString(), radius * 0.82 * Math.sin(ang), -radius * 0.82 * Math.cos(ang)); }
+                for (let i = 0; i < 60; i++) { ctx.rotate(Math.PI / 30); ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(0, -radius + (i % 5 === 0 ? 12 : 5) * dpr); ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.5 * dpr; ctx.stroke(); }
             }
             ctx.restore();
             const now = new Date();
@@ -275,14 +243,12 @@
             const container = document.getElementById('clock-content');
             if (state.clockStyle === 'digital') {
                 const s = state.showSeconds ? `<span style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
-                container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>`;
-                if (state.showDate || state.showDay) {
-                    container.innerHTML += `<div style="font-size:1.4rem; opacity:0.8; margin-top:8px; font-weight:300;">${state.showDay ? now.toLocaleDateString('en-US',{weekday:'long'}) : ''}${state.showDay && state.showDate ? ', ':''}${state.showDate ? now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</div>`;
-                }
+                container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>` +
+                ((state.showDate || state.showDay) ? `<div style="font-size:1.4rem; opacity:0.8; margin-top:8px; font-weight:300;">${state.showDay ? now.toLocaleDateString('en-US',{weekday:'long'}) : ''}${state.showDay && state.showDate ? ', ':''}${state.showDate ? now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</div>` : '');
             } else { if (!container.contains(clockCanvas)) initAnalogueCanvas(); drawAnalogue(); }
         }
 
-        /** WEATHER & GEOLOCATION **/
+        /** WEATHER & CALENDAR **/
         async function fetchWeather() {
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -290,23 +256,17 @@
                 try {
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
                     const data = await res.json();
-                    const code = data.current_weather.weathercode;
                     document.getElementById('temp').textContent = Math.round(data.current_weather.temperature) + '°';
-                    document.getElementById('condition').textContent = weatherTextMap[code] || "Clear Sky";
-                    document.getElementById('weather-icon').textContent = weatherIconMap[code] || '☀️';
+                    document.getElementById('condition').textContent = weatherTextMap[data.current_weather.weathercode] || "Clear Sky";
+                    document.getElementById('weather-icon').textContent = weatherIconMap[data.current_weather.weathercode] || '☀️';
                     const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&email=standby@app.local`);
                     const geoData = await geoRes.json();
                     const city = geoData.address.city || geoData.address.town || geoData.address.village || "Unknown";
-                    const country = geoData.address.country || "";
-                    document.getElementById('location').textContent = `📍 ${city}, ${country}`;
+                    document.getElementById('location').textContent = `📍 ${city}, ${geoData.address.country || ""}`;
                 } catch (e) {}
-            }, () => {
-                document.getElementById('condition').textContent = "Location Denied";
-                document.getElementById('weather-icon').textContent = "🌡️";
-            });
+            }, () => { document.getElementById('condition').textContent = "Location Denied"; document.getElementById('weather-icon').textContent = "🌡️"; });
         }
 
-        /** CALENDAR **/
         function updateCalendar() {
             const now = new Date();
             document.getElementById('cal-title').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
@@ -321,24 +281,62 @@
             }
         }
 
-        /** INITIALIZATION **/
+        /** WALLPAPER AUTO-SAVE & COMPRESSION **/
+        function trySaveWallpaper(data) {
+            try {
+                const newState = { ...state, wallpaper: data };
+                localStorage.setItem('standby_final', JSON.stringify(newState));
+                state.wallpaper = data;
+                document.getElementById('wallpaper-bg').style.backgroundImage = `url(${data})`;
+                const status = document.getElementById('wp-status');
+                status.textContent = "✓ Wallpaper saved"; status.className = "status-success";
+                setTimeout(() => { status.textContent = ""; status.className = ""; }, 2000);
+                return true;
+            } catch (e) { return false; }
+        }
+
+        async function processWallpaper(file) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const process = (maxW, quality) => {
+                        const c = document.createElement('canvas');
+                        let w = img.width, h = img.height;
+                        if (w > maxW) { h *= maxW/w; w = maxW; }
+                        c.width = w; c.height = h;
+                        c.getContext('2d').drawImage(img, 0, 0, w, h);
+                        return c.toDataURL('image/jpeg', quality);
+                    };
+
+                    // Tiered fallback strategy
+                    if (!trySaveWallpaper(process(1280, 0.75))) {
+                        if (!trySaveWallpaper(process(1280, 0.5))) {
+                            if (!trySaveWallpaper(process(800, 0.5))) {
+                                alert("Image too large for iPad storage. Try a smaller file.");
+                            }
+                        }
+                    }
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        /** INIT **/
         function init() {
             const saved = localStorage.getItem('standby_final');
-            if (saved) state = { ...state, ...JSON.parse(saved) };
-            if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+                if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
+            }
             document.getElementById('check-seconds').checked = state.showSeconds;
             document.getElementById('check-date').checked = state.showDate;
             document.getElementById('check-day').checked = state.showDay;
-            updateActiveCards();
-            startClock();
-            scheduleMidnightRefresh();
-            updateCalendar();
-            fetchWeather();
-            setInterval(fetchWeather, 600000);
-            getWakeLock();
+            updateActiveCards(); startClock(); scheduleMidnightRefresh(); updateCalendar(); fetchWeather();
+            setInterval(fetchWeather, 600000); getWakeLock();
         }
 
-        /** UI EVENT HANDLERS **/
         const modal = document.getElementById('settings-modal');
         document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
         document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
@@ -348,23 +346,8 @@
             card.onclick = () => { state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); };
         });
         ['seconds', 'date', 'day'].forEach(k => document.getElementById(`check-${k}`).onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); });
-        document.getElementById('wp-input').onchange = (e) => {
-            const r = new FileReader();
-            r.onload = (ev) => {
-                const img = new Image();
-                img.onload = () => {
-                    const c = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > 1920) { h *= 1920/w; w = 1920; }
-                    c.width = w; c.height = h;
-                    c.getContext('2d').drawImage(img, 0, 0, w, h);
-                    state.wallpaper = c.toDataURL('image/jpeg', 0.8);
-                    document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
-                };
-                img.src = ev.target.result;
-            };
-            r.readAsDataURL(e.target.files[0]);
-        };
+        document.getElementById('wp-input').onchange = (e) => { if (e.target.files[0]) processWallpaper(e.target.files[0]); };
+        
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
             document.getElementById('digital-fonts').style.display = state.clockStyle === 'digital' ? 'block' : 'none';
