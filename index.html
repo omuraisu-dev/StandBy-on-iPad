@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon.png">
-    <title>iPad StandBy</title>
+    <title>iPad StandBy Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
     
@@ -23,12 +21,9 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            overflow: hidden;
-            background-color: #000;
-            font-family: 'Inter', sans-serif;
-            color: var(--text-color);
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: #000;
+            font-family: 'Inter', sans-serif; color: var(--text-color);
         }
 
         #wallpaper-bg {
@@ -42,55 +37,48 @@
             background: rgba(0, 0, 0, 0.4); z-index: -1;
         }
 
-        #app-container {
-            display: grid;
-            width: 100vw; height: 100vh;
-            padding: 24px; gap: 24px;
-        }
-
-        @media (orientation: landscape) {
-            #app-container { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
-            #clock-widget { grid-row: 1 / span 2; }
-        }
-
-        @media (orientation: portrait) {
-            #app-container { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 1fr; }
-        }
+        #widgets-container { position: relative; width: 100vw; height: 100vh; }
 
         .widget {
+            position: absolute;
             background: var(--glass);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
-            border-radius: 36px;
+            border-radius: 28px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            position: relative;
+            min-width: 180px; min-height: 180px;
+            touch-action: none; /* Only disable browser touch on widgets */
         }
 
-        #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .digital-time { font-size: 14vw; line-height: 0.9; text-align: center; }
-        @media (orientation: portrait) { .digital-time { font-size: 20vw; } }
+        .drag-handle {
+            position: absolute; top: 12px; left: 12px; width: 34px; height: 34px;
+            background: rgba(255,255,255,0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+            opacity: 0; transition: opacity 0.3s; cursor: move; z-index: 10;
+        }
+        .resize-handle {
+            position: absolute; bottom: 12px; right: 12px; width: 24px; height: 24px;
+            border-right: 3px solid white; border-bottom: 3px solid white;
+            opacity: 0; transition: opacity 0.3s; cursor: nwse-resize; z-index: 10;
+        }
+        .widget:hover .drag-handle, .widget:hover .resize-handle { opacity: 0.6; }
 
-        #analogue-svg { width: 90%; height: 90%; max-width: 500px; max-height: 500px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
+        #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+        .digital-time { font-size: 5.5rem; line-height: 1; text-align: center; }
+
+        #analogue-svg { width: 90%; height: 90%; max-width: 500px; max-height: 500px; }
         .hand { transform-origin: 50px 50px; transition: transform 0.5s cubic-bezier(0.4, 2.08, 0.55, 0.44); }
         .hand.second { transition: none; }
 
-        #weather-icon { font-size: 5rem; margin-bottom: 10px; }
-        #temp { font-size: 4rem; font-weight: 300; }
-        #condition { font-size: 1.2rem; opacity: 0.8; letter-spacing: 1px; }
-
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; width: 90%; text-align: center; }
-        .cal-header { font-size: 1.4rem; font-weight: 600; margin-bottom: 15px; }
-        .day-label { font-size: 0.7rem; opacity: 0.5; margin-bottom: 5px; font-weight: 700; }
-        .day { font-size: 1.1rem; padding: 6px; }
-        .today { background: #fff; color: #000; border-radius: 50%; font-weight: 700; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 100%; text-align: center; font-size: 0.85rem; }
+        .today { background: #fff; color: #000; border-radius: 50%; font-weight: bold; }
 
         #settings-btn {
-            position: fixed; bottom: 30px; right: 30px;
+            position: fixed; bottom: 25px; right: 25px;
             background: var(--glass); border: 1px solid var(--glass-border);
-            color: white; padding: 12px; border-radius: 50%;
-            cursor: pointer; z-index: 100; backdrop-filter: blur(10px); font-size: 1.5rem;
+            color: white; padding: 14px; border-radius: 50%;
+            z-index: 100; font-size: 1.6rem;
         }
 
         #settings-modal {
@@ -102,47 +90,29 @@
 
         .modal-content {
             background: #1c1c1e; width: 90%; max-width: 500px;
-            max-height: 90vh; border-radius: 30px; padding: 30px;
+            max-height: 85vh; border-radius: 30px; padding: 30px;
             overflow-y: auto; border: 1px solid #38383a;
-            position: relative;
+            touch-action: pan-y; /* Allow scrolling in modal */
         }
 
-        .setting-section { margin-bottom: 30px; }
-        .setting-section h3 { font-size: 0.8rem; color: #8e8e93; text-transform: uppercase; margin-bottom: 15px; }
-
-        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .setting-section { margin-bottom: 25px; }
+        .setting-section h3 { font-size: 0.75rem; color: #8e8e93; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         .preview-card {
             background: #2c2c2e; border: 2px solid transparent;
-            border-radius: 16px; padding: 15px; text-align: center; cursor: pointer;
-            transition: all 0.2s;
+            border-radius: 14px; padding: 14px; text-align: center; font-size: 0.85rem;
         }
         .preview-card.active { border-color: var(--ios-blue); background: #3a3a3c; }
 
-        .toggle-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 0; border-bottom: 1px solid #38383a;
-        }
-
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #38383a; }
+        .switch { position: relative; display: inline-block; width: 48px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #39393d; transition: .3s; border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px;
-            background-color: white; transition: .3s; border-radius: 50%;
-        }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #39393d; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        #apply-btn {
-            width: 100%; padding: 18px; border-radius: 16px;
-            background: var(--ios-blue); color: white; border: none;
-            font-size: 1.1rem; font-weight: 600; cursor: pointer;
-            margin-top: 10px; transition: opacity 0.2s;
-        }
-        #apply-btn:active { opacity: 0.7; }
+        #apply-btn { width: 100%; padding: 18px; border-radius: 16px; background: var(--ios-blue); color: white; border: none; font-weight: 600; font-size: 1rem; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -150,16 +120,27 @@
     <div id="wallpaper-bg"></div>
     <div id="dark-overlay"></div>
 
-    <div id="app-container">
-        <div class="widget" id="clock-widget"><div id="clock-content"></div></div>
-        <div class="widget" id="weather-widget">
-            <div id="weather-icon">--</div>
-            <div id="temp">--°</div>
-            <div id="condition">Locating...</div>
+    <div id="widgets-container">
+        <!-- Pixel-based positioning initialized in JS -->
+        <div class="widget" id="clock-widget">
+            <div class="drag-handle">⠿</div>
+            <div id="clock-content"></div>
+            <div class="resize-handle"></div>
         </div>
+
+        <div class="widget" id="weather-widget">
+            <div class="drag-handle">⠿</div>
+            <div id="weather-icon" style="font-size:3.5rem">--</div>
+            <div id="temp" style="font-size:3rem">--°</div>
+            <div id="condition" style="opacity:0.7; font-weight: 300;">Locating...</div>
+            <div class="resize-handle"></div>
+        </div>
+
         <div class="widget" id="calendar-widget">
-            <div class="cal-header" id="cal-title">Month</div>
-            <div class="calendar-grid" id="cal-grid"></div>
+            <div class="drag-handle">⠿</div>
+            <div id="cal-title" style="font-weight:600; margin-bottom:12px; font-size: 1.2rem;">Month</div>
+            <div id="cal-grid" class="calendar-grid"></div>
+            <div class="resize-handle"></div>
         </div>
     </div>
 
@@ -167,7 +148,7 @@
 
     <div id="settings-modal">
         <div class="modal-content">
-            <h2 style="margin-top:0; margin-bottom:25px;">Settings</h2>
+            <h2 style="margin-top:0">Settings</h2>
 
             <div class="setting-section">
                 <h3>Wallpaper</h3>
@@ -195,135 +176,181 @@
                 <div class="preview-grid">
                     <div class="preview-card" data-key="face" data-val="minimal">Minimal</div>
                     <div class="preview-card" data-key="face" data-val="classic">Classic</div>
+                    <div class="preview-card" data-key="face" data-val="outlined">Outlined</div>
                 </div>
             </div>
 
             <div class="setting-section">
                 <h3>Display Options</h3>
-                <div class="toggle-item"><span>Seconds</span><label class="switch"><input type="checkbox" id="check-seconds"><span class="slider"></span></label></div>
-                <div class="toggle-item"><span>Date</span><label class="switch"><input type="checkbox" id="check-date"><span class="slider"></span></label></div>
-                <div class="toggle-item"><span>Day</span><label class="switch"><input type="checkbox" id="check-day"><span class="slider"></span></label></div>
+                <div class="toggle-item"><span>Show Seconds</span><label class="switch"><input type="checkbox" id="check-seconds"><span class="slider"></span></label></div>
+                <div class="toggle-item"><span>Show Date</span><label class="switch"><input type="checkbox" id="check-date"><span class="slider"></span></label></div>
+                <div class="toggle-item"><span>Show Day</span><label class="switch"><input type="checkbox" id="check-day"><span class="slider"></span></label></div>
             </div>
 
-            <button id="apply-btn">Apply Changes</button>
+            <button id="apply-btn">Apply & Save Layout</button>
         </div>
     </div>
 
     <script>
         let state = {
-            clockStyle: 'digital',
-            font: 'Inter',
-            face: 'minimal',
-            showSeconds: true,
-            showDate: true,
-            showDay: true,
-            wallpaper: null
+            clockStyle: 'digital', font: 'Inter', face: 'minimal',
+            showSeconds: true, showDate: true, showDay: true, wallpaper: null,
+            layouts: {} 
+        };
+
+        const weatherMap = {
+            0: "Clear Sky", 1: "Mainly Clear", 2: "Partly Cloudy", 3: "Overcast",
+            45: "Foggy", 48: "Dense Fog", 51: "Light Drizzle", 61: "Rainy",
+            71: "Snowy", 81: "Showers", 95: "Thunderstorm"
         };
 
         function init() {
-            const saved = localStorage.getItem('standby_v3');
-            if (saved) {
-                state = { ...state, ...JSON.parse(saved) };
-            }
+            const saved = localStorage.getItem('standby_v5');
+            if (saved) state = { ...state, ...JSON.parse(saved) };
+
+            if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
             
-            if (state.wallpaper) {
-                document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
-            }
+            // Normalize Layout to Pixels
+            const defaultPositions = {
+                'clock-widget': { top: 0.1, left: 0.05, w: 0.45, h: 0.6 },
+                'weather-widget': { top: 0.1, left: 0.55, w: 0.4, h: 0.3 },
+                'calendar-widget': { top: 0.45, left: 0.55, w: 0.4, h: 0.45 }
+            };
+
+            Object.keys(defaultPositions).forEach(id => {
+                const el = document.getElementById(id);
+                if (state.layouts[id]) {
+                    const l = state.layouts[id];
+                    el.style.top = l.top + 'px';
+                    el.style.left = l.left + 'px';
+                    el.style.width = l.width + 'px';
+                    el.style.height = l.height + 'px';
+                } else {
+                    const d = defaultPositions[id];
+                    el.style.top = (window.innerHeight * d.top) + 'px';
+                    el.style.left = (window.innerWidth * d.left) + 'px';
+                    el.style.width = (window.innerWidth * d.w) + 'px';
+                    el.style.height = (window.innerHeight * d.h) + 'px';
+                }
+            });
 
             document.getElementById('check-seconds').checked = state.showSeconds;
             document.getElementById('check-date').checked = state.showDate;
             document.getElementById('check-day').checked = state.showDay;
-            updateActiveCards();
             
+            updateActiveCards();
             updateClock();
             setInterval(updateClock, 1000);
             updateCalendar();
             fetchWeather();
-            setInterval(fetchWeather, 600000);
+            setupInteractions();
+            initWakeLock();
         }
 
-        /** Apply & Save Function **/
-        function applyAndClose() {
-            // Persist to storage
-            localStorage.setItem('standby_v3', JSON.stringify(state));
-            
-            // Visual feedback on button
-            const btn = document.getElementById('apply-btn');
-            const originalText = btn.textContent;
-            btn.textContent = "Applied!";
-            btn.style.background = "#34c759"; // Success green
+        /** PIXEL-BASED CLAMPED INTERACTIONS **/
+        function setupInteractions() {
+            const widgets = document.querySelectorAll('.widget');
+            widgets.forEach(w => {
+                const drag = w.querySelector('.drag-handle');
+                const resize = w.querySelector('.resize-handle');
+                
+                let activeAction = null;
+                let startX, startY, startTop, startLeft, startW, startH;
 
-            setTimeout(() => {
-                document.getElementById('settings-modal').style.display = 'none';
-                btn.textContent = originalText;
-                btn.style.background = "var(--ios-blue)";
-            }, 600);
+                const onStart = (e) => {
+                    const touch = e.type.includes('touch') ? e.touches[0] : e;
+                    if (e.target === drag) activeAction = 'drag';
+                    else if (e.target === resize) activeAction = 'resize';
+                    else return;
+
+                    startX = touch.clientX; startY = touch.clientY;
+                    startTop = parseInt(w.style.top);
+                    startLeft = parseInt(w.style.left);
+                    startW = w.offsetWidth;
+                    startH = w.offsetHeight;
+                    w.style.zIndex = 50;
+                };
+
+                const onMove = (e) => {
+                    if (!activeAction) return;
+                    const touch = e.type.includes('touch') ? e.touches[0] : e;
+                    const dx = touch.clientX - startX;
+                    const dy = touch.clientY - startY;
+
+                    if (activeAction === 'drag') {
+                        let newTop = startTop + dy;
+                        let newLeft = startLeft + dx;
+                        
+                        // Boundary Clamping
+                        newTop = Math.max(0, Math.min(newTop, window.innerHeight - w.offsetHeight));
+                        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - w.offsetWidth));
+                        
+                        w.style.top = newTop + 'px';
+                        w.style.left = newLeft + 'px';
+                    } else {
+                        let newW = startW + dx;
+                        let newH = startH + dy;
+
+                        // Clamping for Resize
+                        newW = Math.max(180, Math.min(newW, window.innerWidth - startLeft));
+                        newH = Math.max(180, Math.min(newH, window.innerHeight - startTop));
+
+                        w.style.width = newW + 'px';
+                        w.style.height = newH + 'px';
+                    }
+                };
+
+                const onEnd = () => {
+                    if (!activeAction) return;
+                    state.layouts[w.id] = { 
+                        top: parseInt(w.style.top), 
+                        left: parseInt(w.style.left), 
+                        width: parseInt(w.style.width), 
+                        height: parseInt(w.style.height) 
+                    };
+                    activeAction = null; w.style.zIndex = 10;
+                };
+
+                w.addEventListener('mousedown', onStart);
+                w.addEventListener('touchstart', onStart);
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('touchmove', onMove, { passive: false });
+                window.addEventListener('mouseup', onEnd);
+                window.addEventListener('touchend', onEnd);
+            });
         }
 
-        function updateClock() {
-            const now = new Date();
-            const container = document.getElementById('clock-content');
-            if (state.clockStyle === 'digital') renderDigital(now, container);
-            else renderAnalogue(now, container);
-        }
-
-        function renderDigital(now, container) {
-            const h = String(now.getHours()).padStart(2, '0');
-            const m = String(now.getMinutes()).padStart(2, '0');
-            const s = String(now.getSeconds()).padStart(2, '0');
-            let html = `<div class="digital-time" style="font-family:'${state.font}'">${h}:${m}${state.showSeconds ? `<span style="font-size:0.5em; opacity:0.4">:${s}</span>` : ''}</div>`;
-            if (state.showDate || state.showDay) {
-                html += `<div style="font-size:1.5rem; margin-top:10px; opacity:0.8">`;
-                if (state.showDay) html += now.toLocaleDateString('en-US', {weekday:'long'}) + ' ';
-                if (state.showDate) html += now.toLocaleDateString('en-US', {month:'long', day:'numeric'});
-                html += `</div>`;
-            }
-            container.innerHTML = html;
-        }
-
+        /** ENHANCED ANALOGUE RENDERING **/
         function renderAnalogue(now, container) {
             const s = now.getSeconds(), m = now.getMinutes(), h = now.getHours() % 12;
             const sDeg = s * 6, mDeg = m * 6 + s * 0.1, hDeg = h * 30 + m * 0.5;
             let face = '';
+            
             if (state.face === 'classic') {
                 for (let i = 1; i <= 12; i++) {
                     const ang = (i * 30 - 90) * (Math.PI / 180);
-                    face += `<text x="${50 + 38 * Math.cos(ang)}" y="${50 + 38 * Math.sin(ang)}" fill="white" font-size="5" text-anchor="middle" dominant-baseline="central" font-weight="600">${i}</text>`;
+                    face += `<text x="${50 + 38 * Math.cos(ang)}" y="${50 + 38 * Math.sin(ang)}" fill="white" font-size="6" text-anchor="middle" dominant-baseline="central" font-weight="600">${i}</text>`;
                 }
-            } else { face += `<circle cx="50" cy="50" r="1.5" fill="white"/>`; }
+            } else if (state.face === 'outlined') {
+                face += `<circle cx="50" cy="50" r="48" fill="none" stroke="white" stroke-width="0.8" opacity="0.6" />`;
+                // Add 12 ticks
+                for (let i = 0; i < 12; i++) {
+                    face += `<line x1="50" y1="4" x2="50" y2="9" stroke="white" stroke-width="1" transform="rotate(${i * 30} 50 50)" opacity="0.8" />`;
+                }
+            } else { 
+                face += `<circle cx="50" cy="50" r="2" fill="white"/>`; 
+            }
 
             container.innerHTML = `
                 <svg id="analogue-svg" viewBox="0 0 100 100">
                     ${face}
                     <line x1="50" y1="50" x2="50" y2="30" stroke="white" stroke-width="4" stroke-linecap="round" class="hand" transform="rotate(${hDeg} 50 50)" />
                     <line x1="50" y1="50" x2="50" y2="15" stroke="white" stroke-width="2.5" stroke-linecap="round" class="hand" transform="rotate(${mDeg} 50 50)" />
-                    ${state.showSeconds ? `<line x1="50" y1="50" x2="50" y2="10" stroke="var(--accent-color)" stroke-width="1" stroke-linecap="round" class="hand second" transform="rotate(${sDeg} 50 50)" />` : ''}
-                </svg>
-                <div style="margin-top:10px; font-size:1.2rem; opacity:0.8">
-                    ${state.showDay ? now.toLocaleDateString('en-US', {weekday:'short'}) : ''} ${state.showDate ? now.toLocaleDateString('en-US', {month:'short', day:'numeric'}) : ''}
-                </div>`;
+                    ${state.showSeconds ? `<line x1="50" y1="50" x2="50" y2="10" stroke="${state.face==='outlined'?'white':'#ff3b30'}" stroke-width="1.2" class="hand second" transform="rotate(${sDeg} 50 50)" />` : ''}
+                </svg>`;
         }
 
-        document.getElementById('wp-input').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const img = new Image();
-                img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > 1920) { h *= 1920/w; w = 1920; }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    state.wallpaper = canvas.toDataURL('image/jpeg', 0.8);
-                    document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-
+        /** WEATHER & CLOCK CORE **/
         async function fetchWeather() {
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -332,10 +359,22 @@
                     const data = await res.json();
                     const cur = data.current_weather;
                     document.getElementById('temp').textContent = Math.round(cur.temperature) + '°';
-                    document.getElementById('weather-icon').textContent = cur.weathercode > 3 ? '☁️' : '☀️';
-                    document.getElementById('condition').textContent = "Live Update";
+                    document.getElementById('condition').textContent = weatherMap[cur.weathercode] || "Clear";
+                    document.getElementById('weather-icon').textContent = cur.weathercode > 3 ? (cur.weathercode > 70 ? '❄️' : '🌧️') : '☀️';
                 } catch (err) {}
-            });
+            }, () => { document.getElementById('condition').textContent = "Loc. Access Denied"; });
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const container = document.getElementById('clock-content');
+            if (state.clockStyle === 'digital') {
+                const s = state.showSeconds ? `<span style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
+                container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>`;
+                if (state.showDate || state.showDay) {
+                    container.innerHTML += `<div style="font-size:1.4rem; opacity:0.8; margin-top:8px; font-weight:300;">${state.showDay ? now.toLocaleDateString('en-US',{weekday:'long'}) : ''}${state.showDay && state.showDate ? ', ':''}${state.showDate ? now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</div>`;
+                }
+            } else renderAnalogue(now, container);
         }
 
         function updateCalendar() {
@@ -343,15 +382,23 @@
             document.getElementById('cal-title').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
             const first = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
             const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            const grid = document.getElementById('cal-grid');
-            grid.innerHTML = '';
-            ['S','M','T','W','T','F','S'].forEach(d => grid.innerHTML += `<div class="day-label">${d}</div>`);
+            const grid = document.getElementById('cal-grid'); grid.innerHTML = '';
+            ['S','M','T','W','T','F','S'].forEach(d => grid.innerHTML += `<div style="opacity:0.4; font-weight:bold;">${d}</div>`);
             for (let i = 0; i < first; i++) grid.innerHTML += `<div></div>`;
-            for (let d = 1; d <= days; d++) grid.innerHTML += `<div class="day ${d === now.getDate() ? 'today' : ''}">${d}</div>`;
+            for (let d = 1; d <= days; d++) grid.innerHTML += `<div class="${d === now.getDate() ? 'today' : ''}">${d}</div>`;
         }
 
+        // Wake Lock
+        async function initWakeLock() {
+            try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (err) {}
+        }
+
+        // Settings
         document.getElementById('settings-btn').onclick = () => document.getElementById('settings-modal').style.display = 'flex';
-        document.getElementById('apply-btn').onclick = applyAndClose;
+        document.getElementById('apply-btn').onclick = () => {
+            localStorage.setItem('standby_v5', JSON.stringify(state));
+            document.getElementById('settings-modal').style.display = 'none';
+        };
 
         document.querySelectorAll('.preview-card').forEach(card => {
             card.onclick = () => {
@@ -361,13 +408,31 @@
             };
         });
 
-        ['check-seconds', 'check-date', 'check-day'].forEach(id => {
-            document.getElementById(id).onchange = (e) => {
-                const key = id.replace('check-', '');
-                state[`show${key.charAt(0).toUpperCase() + key.slice(1)}`] = e.target.checked;
-                updateClock();
+        ['seconds', 'date', 'day'].forEach(key => {
+            document.getElementById(`check-${key}`).onchange = (e) => { 
+                const stateKey = `show${key.charAt(0).toUpperCase() + key.slice(1)}`;
+                state[stateKey] = e.target.checked; 
+                updateClock(); 
             };
         });
+
+        document.getElementById('wp-input').onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height;
+                    if (w > 1920) { h *= 1920/w; w = 1920; }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    state.wallpaper = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
 
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => {
