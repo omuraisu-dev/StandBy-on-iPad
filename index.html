@@ -9,7 +9,6 @@
     <link rel="apple-touch-icon" href="icon.png">
     <title>iPad StandBy</title>
     
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
     
     <style>
@@ -17,7 +16,8 @@
             --glass: rgba(255, 255, 255, 0.1);
             --glass-border: rgba(255, 255, 255, 0.2);
             --text-color: #ffffff;
-            --accent-color: #ff3b30; /* iOS Red */
+            --accent-color: #ff3b30;
+            --ios-blue: #0a84ff;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -31,7 +31,6 @@
             color: var(--text-color);
         }
 
-        /* Background Layers */
         #wallpaper-bg {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-size: cover; background-position: center;
@@ -43,94 +42,57 @@
             background: rgba(0, 0, 0, 0.4); z-index: -1;
         }
 
-        /* Layout Grid */
         #app-container {
             display: grid;
             width: 100vw; height: 100vh;
             padding: 24px; gap: 24px;
         }
 
-        /* Landscape Layout */
         @media (orientation: landscape) {
-            #app-container {
-                grid-template-columns: 1fr 1fr;
-                grid-template-rows: 1fr 1fr;
-            }
+            #app-container { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
             #clock-widget { grid-row: 1 / span 2; }
         }
 
-        /* Portrait Layout */
         @media (orientation: portrait) {
-            #app-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: 1fr 1fr 1fr;
-            }
+            #app-container { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 1fr; }
         }
 
-        /* Widget Box - Frosted Glass */
         .widget {
             background: var(--glass);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
             border-radius: 36px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             position: relative;
         }
 
-        /* Clock Widget specifics */
-        #clock-content {
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-        }
-
-        .digital-time {
-            font-size: 14vw; line-height: 0.9;
-            text-align: center;
-        }
-        
+        #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .digital-time { font-size: 14vw; line-height: 0.9; text-align: center; }
         @media (orientation: portrait) { .digital-time { font-size: 20vw; } }
 
-        /* Analogue Clock SVG */
-        #analogue-svg {
-            width: 90%; height: 90%;
-            max-width: 500px; max-height: 500px;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
-        }
-
+        #analogue-svg { width: 90%; height: 90%; max-width: 500px; max-height: 500px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
         .hand { transform-origin: 50px 50px; transition: transform 0.5s cubic-bezier(0.4, 2.08, 0.55, 0.44); }
-        .hand.second { transition: none; } /* Second hand needs sharp movement */
+        .hand.second { transition: none; }
 
-        /* Weather UI */
         #weather-icon { font-size: 5rem; margin-bottom: 10px; }
         #temp { font-size: 4rem; font-weight: 300; }
         #condition { font-size: 1.2rem; opacity: 0.8; letter-spacing: 1px; }
 
-        /* Calendar UI */
-        .calendar-grid {
-            display: grid; grid-template-columns: repeat(7, 1fr);
-            gap: 8px; width: 90%; text-align: center;
-        }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; width: 90%; text-align: center; }
         .cal-header { font-size: 1.4rem; font-weight: 600; margin-bottom: 15px; }
         .day-label { font-size: 0.7rem; opacity: 0.5; margin-bottom: 5px; font-weight: 700; }
         .day { font-size: 1.1rem; padding: 6px; }
         .today { background: #fff; color: #000; border-radius: 50%; font-weight: 700; }
 
-        /* Settings Icon */
         #settings-btn {
             position: fixed; bottom: 30px; right: 30px;
             background: var(--glass); border: 1px solid var(--glass-border);
             color: white; padding: 12px; border-radius: 50%;
-            cursor: pointer; z-index: 100; backdrop-filter: blur(10px);
+            cursor: pointer; z-index: 100; backdrop-filter: blur(10px); font-size: 1.5rem;
         }
 
-        /* Settings Modal */
         #settings-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none;
@@ -140,8 +102,9 @@
 
         .modal-content {
             background: #1c1c1e; width: 90%; max-width: 500px;
-            max-height: 85vh; border-radius: 30px; padding: 30px;
+            max-height: 90vh; border-radius: 30px; padding: 30px;
             overflow-y: auto; border: 1px solid #38383a;
+            position: relative;
         }
 
         .setting-section { margin-bottom: 30px; }
@@ -151,8 +114,9 @@
         .preview-card {
             background: #2c2c2e; border: 2px solid transparent;
             border-radius: 16px; padding: 15px; text-align: center; cursor: pointer;
+            transition: all 0.2s;
         }
-        .preview-card.active { border-color: #0a84ff; background: #3a3a3c; }
+        .preview-card.active { border-color: var(--ios-blue); background: #3a3a3c; }
 
         .toggle-item {
             display: flex; justify-content: space-between; align-items: center;
@@ -171,6 +135,14 @@
         }
         input:checked + .slider { background-color: #34c759; }
         input:checked + .slider:before { transform: translateX(22px); }
+
+        #apply-btn {
+            width: 100%; padding: 18px; border-radius: 16px;
+            background: var(--ios-blue); color: white; border: none;
+            font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            margin-top: 10px; transition: opacity 0.2s;
+        }
+        #apply-btn:active { opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -179,19 +151,12 @@
     <div id="dark-overlay"></div>
 
     <div id="app-container">
-        <!-- Clock -->
-        <div class="widget" id="clock-widget">
-            <div id="clock-content"></div>
-        </div>
-
-        <!-- Weather -->
+        <div class="widget" id="clock-widget"><div id="clock-content"></div></div>
         <div class="widget" id="weather-widget">
             <div id="weather-icon">--</div>
             <div id="temp">--°</div>
             <div id="condition">Locating...</div>
         </div>
-
-        <!-- Calendar -->
         <div class="widget" id="calendar-widget">
             <div class="cal-header" id="cal-title">Month</div>
             <div class="calendar-grid" id="cal-grid"></div>
@@ -200,18 +165,13 @@
 
     <button id="settings-btn">⚙️</button>
 
-    <!-- Modal -->
     <div id="settings-modal">
         <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 style="margin:0">Settings</h2>
-                <button id="close-modal" style="background:none; border:none; color:white; font-size:2rem; cursor:pointer;">&times;</button>
-            </div>
+            <h2 style="margin-top:0; margin-bottom:25px;">Settings</h2>
 
             <div class="setting-section">
                 <h3>Wallpaper</h3>
                 <input type="file" id="wp-input" accept="image/*" style="width:100%; color:white;">
-                <p style="font-size:0.7rem; color:#8e8e93; margin-top:5px;">Image is auto-compressed to fit storage.</p>
             </div>
 
             <div class="setting-section">
@@ -235,30 +195,21 @@
                 <div class="preview-grid">
                     <div class="preview-card" data-key="face" data-val="minimal">Minimal</div>
                     <div class="preview-card" data-key="face" data-val="classic">Classic</div>
-                    <div class="preview-card" data-key="face" data-val="outlined" style="grid-column: span 2">Outlined</div>
                 </div>
             </div>
 
             <div class="setting-section">
-                <h3>Options</h3>
-                <div class="toggle-item">
-                    <span>Show Seconds</span>
-                    <label class="switch"><input type="checkbox" id="check-seconds"><span class="slider"></span></label>
-                </div>
-                <div class="toggle-item">
-                    <span>Show Date</span>
-                    <label class="switch"><input type="checkbox" id="check-date"><span class="slider"></span></label>
-                </div>
-                <div class="toggle-item">
-                    <span>Show Day</span>
-                    <label class="switch"><input type="checkbox" id="check-day"><span class="slider"></span></label>
-                </div>
+                <h3>Display Options</h3>
+                <div class="toggle-item"><span>Seconds</span><label class="switch"><input type="checkbox" id="check-seconds"><span class="slider"></span></label></div>
+                <div class="toggle-item"><span>Date</span><label class="switch"><input type="checkbox" id="check-date"><span class="slider"></span></label></div>
+                <div class="toggle-item"><span>Day</span><label class="switch"><input type="checkbox" id="check-day"><span class="slider"></span></label></div>
             </div>
+
+            <button id="apply-btn">Apply Changes</button>
         </div>
     </div>
 
     <script>
-        /** STATE & PERSISTENCE **/
         let state = {
             clockStyle: 'digital',
             font: 'Inter',
@@ -270,7 +221,7 @@
         };
 
         function init() {
-            const saved = localStorage.getItem('standby_v2');
+            const saved = localStorage.getItem('standby_v3');
             if (saved) {
                 state = { ...state, ...JSON.parse(saved) };
             }
@@ -279,47 +230,48 @@
                 document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
             }
 
-            // Set UI to match state
             document.getElementById('check-seconds').checked = state.showSeconds;
             document.getElementById('check-date').checked = state.showDate;
             document.getElementById('check-day').checked = state.showDay;
             updateActiveCards();
             
-            // Kick off loops
             updateClock();
             setInterval(updateClock, 1000);
             updateCalendar();
             fetchWeather();
             setInterval(fetchWeather, 600000);
-            requestWakeLock();
         }
 
-        function save() {
-            localStorage.setItem('standby_v2', JSON.stringify(state));
-            updateActiveCards();
+        /** Apply & Save Function **/
+        function applyAndClose() {
+            // Persist to storage
+            localStorage.setItem('standby_v3', JSON.stringify(state));
+            
+            // Visual feedback on button
+            const btn = document.getElementById('apply-btn');
+            const originalText = btn.textContent;
+            btn.textContent = "Applied!";
+            btn.style.background = "#34c759"; // Success green
+
+            setTimeout(() => {
+                document.getElementById('settings-modal').style.display = 'none';
+                btn.textContent = originalText;
+                btn.style.background = "var(--ios-blue)";
+            }, 600);
         }
 
-        /** CLOCK RENDERING **/
         function updateClock() {
             const now = new Date();
             const container = document.getElementById('clock-content');
-            
-            if (state.clockStyle === 'digital') {
-                renderDigital(now, container);
-            } else {
-                renderAnalogue(now, container);
-            }
+            if (state.clockStyle === 'digital') renderDigital(now, container);
+            else renderAnalogue(now, container);
         }
 
         function renderDigital(now, container) {
             const h = String(now.getHours()).padStart(2, '0');
             const m = String(now.getMinutes()).padStart(2, '0');
             const s = String(now.getSeconds()).padStart(2, '0');
-            
-            let html = `<div class="digital-time" style="font-family:'${state.font}'">${h}:${m}`;
-            if (state.showSeconds) html += `<span style="font-size:0.5em; opacity:0.4">:${s}</span>`;
-            html += `</div>`;
-            
+            let html = `<div class="digital-time" style="font-family:'${state.font}'">${h}:${m}${state.showSeconds ? `<span style="font-size:0.5em; opacity:0.4">:${s}</span>` : ''}</div>`;
             if (state.showDate || state.showDay) {
                 html += `<div style="font-size:1.5rem; margin-top:10px; opacity:0.8">`;
                 if (state.showDay) html += now.toLocaleDateString('en-US', {weekday:'long'}) + ' ';
@@ -330,155 +282,81 @@
         }
 
         function renderAnalogue(now, container) {
-            const s = now.getSeconds();
-            const m = now.getMinutes();
-            const h = now.getHours() % 12;
-
-            const sDeg = s * 6;
-            const mDeg = m * 6 + s * 0.1;
-            const hDeg = h * 30 + m * 0.5;
-
+            const s = now.getSeconds(), m = now.getMinutes(), h = now.getHours() % 12;
+            const sDeg = s * 6, mDeg = m * 6 + s * 0.1, hDeg = h * 30 + m * 0.5;
             let face = '';
-            
             if (state.face === 'classic') {
                 for (let i = 1; i <= 12; i++) {
                     const ang = (i * 30 - 90) * (Math.PI / 180);
-                    const x = 50 + 38 * Math.cos(ang);
-                    const y = 50 + 38 * Math.sin(ang);
-                    face += `<text x="${x}" y="${y}" fill="white" font-size="5" text-anchor="middle" dominant-baseline="central" font-weight="600">${i}</text>`;
+                    face += `<text x="${50 + 38 * Math.cos(ang)}" y="${50 + 38 * Math.sin(ang)}" fill="white" font-size="5" text-anchor="middle" dominant-baseline="central" font-weight="600">${i}</text>`;
                 }
-            } else if (state.face === 'outlined') {
-                face += `<circle cx="50" cy="50" r="46" fill="none" stroke="white" stroke-width="0.5" opacity="0.5"/>`;
-                for (let i = 0; i < 60; i++) {
-                    const length = i % 5 === 0 ? 4 : 2;
-                    face += `<line x1="50" y1="6" x2="50" y2="${6+length}" stroke="white" stroke-width="0.5" transform="rotate(${i*6} 50 50)"/>`;
-                }
-            } else {
-                // Minimal
-                face += `<circle cx="50" cy="50" r="1.5" fill="white"/>`;
-            }
+            } else { face += `<circle cx="50" cy="50" r="1.5" fill="white"/>`; }
 
             container.innerHTML = `
                 <svg id="analogue-svg" viewBox="0 0 100 100">
                     ${face}
-                    <!-- Hour -->
                     <line x1="50" y1="50" x2="50" y2="30" stroke="white" stroke-width="4" stroke-linecap="round" class="hand" transform="rotate(${hDeg} 50 50)" />
-                    <!-- Minute -->
                     <line x1="50" y1="50" x2="50" y2="15" stroke="white" stroke-width="2.5" stroke-linecap="round" class="hand" transform="rotate(${mDeg} 50 50)" />
-                    <!-- Second -->
-                    ${state.showSeconds ? `<line x1="50" y1="50" x2="50" y2="10" stroke="${state.face === 'outlined' ? '#fff' : 'var(--accent-color)'}" stroke-width="1" stroke-linecap="round" class="hand second" transform="rotate(${sDeg} 50 50)" />` : ''}
+                    ${state.showSeconds ? `<line x1="50" y1="50" x2="50" y2="10" stroke="var(--accent-color)" stroke-width="1" stroke-linecap="round" class="hand second" transform="rotate(${sDeg} 50 50)" />` : ''}
                 </svg>
                 <div style="margin-top:10px; font-size:1.2rem; opacity:0.8">
-                    ${state.showDay ? now.toLocaleDateString('en-US', {weekday:'short'}) : ''} 
-                    ${state.showDate ? now.toLocaleDateString('en-US', {month:'short', day:'numeric'}) : ''}
-                </div>
-            `;
+                    ${state.showDay ? now.toLocaleDateString('en-US', {weekday:'short'}) : ''} ${state.showDate ? now.toLocaleDateString('en-US', {month:'short', day:'numeric'}) : ''}
+                </div>`;
         }
 
-        /** WALLPAPER COMPRESSION & UPLOAD **/
         document.getElementById('wp-input').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-
             const reader = new FileReader();
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    // Resize if larger than 1920px
-                    const maxSide = 1920;
-                    if (width > maxSide || height > maxSide) {
-                        if (width > height) {
-                            height *= maxSide / width;
-                            width = maxSide;
-                        } else {
-                            width *= maxSide / height;
-                            height = maxSide;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // Export as compressed JPEG
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
-                    state.wallpaper = compressedBase64;
-                    document.getElementById('wallpaper-bg').style.backgroundImage = `url(${compressedBase64})`;
-                    save();
+                    let w = img.width, h = img.height;
+                    if (w > 1920) { h *= 1920/w; w = 1920; }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    state.wallpaper = canvas.toDataURL('image/jpeg', 0.8);
+                    document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         });
 
-        /** WEATHER (Open-Meteo) **/
         async function fetchWeather() {
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 try {
-                    const { latitude, longitude } = pos.coords;
-                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current_weather=true`);
                     const data = await res.json();
                     const cur = data.current_weather;
-                    
                     document.getElementById('temp').textContent = Math.round(cur.temperature) + '°';
-                    const code = cur.weathercode;
-                    let icon = '☀️', cond = 'Clear';
-                    if (code > 0) { icon = '🌤️'; cond = 'Partly Cloudy'; }
-                    if (code > 3) { icon = '☁️'; cond = 'Cloudy'; }
-                    if (code > 45) { icon = '🌫️'; cond = 'Foggy'; }
-                    if (code > 50) { icon = '🌧️'; cond = 'Rainy'; }
-                    if (code > 70) { icon = '❄️'; cond = 'Snowy'; }
-                    if (code > 90) { icon = '⛈️'; cond = 'Stormy'; }
-                    
-                    document.getElementById('weather-icon').textContent = icon;
-                    document.getElementById('condition').textContent = cond;
-                } catch (err) { console.error("Weather error", err); }
+                    document.getElementById('weather-icon').textContent = cur.weathercode > 3 ? '☁️' : '☀️';
+                    document.getElementById('condition').textContent = "Live Update";
+                } catch (err) {}
             });
         }
 
-        /** CALENDAR **/
         function updateCalendar() {
             const now = new Date();
-            const month = now.getMonth();
-            const year = now.getFullYear();
             document.getElementById('cal-title').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-
-            const first = new Date(year, month, 1).getDay();
-            const days = new Date(year, month + 1, 0).getDate();
+            const first = new Date(now.getFullYear(), now.getMonth(), 1).getDay();
+            const days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
             const grid = document.getElementById('cal-grid');
             grid.innerHTML = '';
-
             ['S','M','T','W','T','F','S'].forEach(d => grid.innerHTML += `<div class="day-label">${d}</div>`);
             for (let i = 0; i < first; i++) grid.innerHTML += `<div></div>`;
-            for (let d = 1; d <= days; d++) {
-                const isToday = d === now.getDate();
-                grid.innerHTML += `<div class="day ${isToday ? 'today' : ''}">${d}</div>`;
-            }
+            for (let d = 1; d <= days; d++) grid.innerHTML += `<div class="day ${d === now.getDate() ? 'today' : ''}">${d}</div>`;
         }
 
-        /** UI EVENT HANDLERS **/
-        const modal = document.getElementById('settings-modal');
-        document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
-        document.getElementById('close-modal').onclick = () => modal.style.display = 'none';
-        window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
+        document.getElementById('settings-btn').onclick = () => document.getElementById('settings-modal').style.display = 'flex';
+        document.getElementById('apply-btn').onclick = applyAndClose;
 
         document.querySelectorAll('.preview-card').forEach(card => {
             card.onclick = () => {
-                const key = card.dataset.key;
-                const val = card.dataset.val;
-                state[key] = val;
-                
-                if (key === 'clockStyle') {
-                    document.getElementById('digital-fonts').style.display = val === 'digital' ? 'block' : 'none';
-                    document.getElementById('analogue-faces').style.display = val === 'analogue' ? 'block' : 'none';
-                }
-                save();
+                state[card.dataset.key] = card.dataset.val;
+                updateActiveCards();
                 updateClock();
             };
         });
@@ -487,23 +365,16 @@
             document.getElementById(id).onchange = (e) => {
                 const key = id.replace('check-', '');
                 state[`show${key.charAt(0).toUpperCase() + key.slice(1)}`] = e.target.checked;
-                save();
                 updateClock();
             };
         });
 
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => {
-                const key = card.dataset.key;
-                const val = card.dataset.val;
-                card.classList.toggle('active', state[key] === val);
+                card.classList.toggle('active', state[card.dataset.key] === card.dataset.val);
             });
             document.getElementById('digital-fonts').style.display = state.clockStyle === 'digital' ? 'block' : 'none';
             document.getElementById('analogue-faces').style.display = state.clockStyle === 'analogue' ? 'block' : 'none';
-        }
-
-        async function requestWakeLock() {
-            try { if ('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch (err) {}
         }
 
         init();
