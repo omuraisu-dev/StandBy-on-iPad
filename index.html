@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>iPad StandBy</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400&family=Bebas+Neue&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #000;
+            --glass: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.2);
+            --text: #ffffff;
+            --font-main: 'Inter', sans-serif;
+            --font-clock: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: var(--font-main);
+            color: var(--text);
+            user-select: none;
+        }
+
+        /* Wallpaper Background */
+        #wallpaper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: -1;
+        }
+
+        /* App Layout */
+        #app-container {
+            display: grid;
+            width: 100vw;
+            height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Landscape Layout */
+        @media (orientation: landscape) {
+            #app-container {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+            #clock-container {
+                grid-row: 1 / span 2;
+            }
+        }
+
+        /* Portrait Layout */
+        @media (orientation: portrait) {
+            #app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr 1fr;
+            }
+        }
+
+        /* Widget Styling */
+        .widget {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        /* Clock Widget Content */
+        #clock-display {
+            text-align: center;
+        }
+
+        .digital-time {
+            font-size: 10vw;
+            line-height: 1;
+            font-family: var(--font-clock);
+        }
+
+        .date-info {
+            font-size: 1.5rem;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        /* Analogue Clock SVG */
+        #analogue-clock {
+            width: 80%;
+            height: 80%;
+            max-width: 400px;
+        }
+
+        .hand { stroke: white; stroke-linecap: round; transform-origin: 50% 50%; }
+        .hour-hand { stroke-width: 6; }
+        .min-hand { stroke-width: 4; }
+        .sec-hand { stroke: #ff3b30; stroke-width: 2; }
+        .clock-face-outline { fill: none; stroke: white; stroke-width: 2; }
+
+        /* Weather Widget */
+        #weather-icon { font-size: 4rem; margin-bottom: 10px; }
+        #temp { font-size: 3rem; font-weight: 300; }
+        #condition { font-size: 1.2rem; opacity: 0.8; }
+
+        /* Calendar Widget */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            width: 90%;
+            text-align: center;
+        }
+        .cal-header { font-weight: bold; margin-bottom: 10px; font-size: 1.2rem; }
+        .day-label { font-size: 0.7rem; opacity: 0.5; margin-bottom: 5px; }
+        .day { font-size: 1rem; padding: 5px; }
+        .today { background: #fff; color: #000; border-radius: 50%; font-weight: bold; }
+
+        /* Settings Modal */
+        #settings-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            color: white;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        #settings-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: #1c1c1e;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            border-radius: 20px;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .setting-group { margin-bottom: 24px; }
+        .setting-group h3 { margin-bottom: 12px; font-size: 1rem; color: #8e8e93; text-transform: uppercase; }
+
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .preview-card {
+            background: #2c2c2e;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .preview-card.active { border-color: #0a84ff; background: #3a3a3c; }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #38383a;
+        }
+
+        /* Switch UI */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #39393d; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px;
+            background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #34c759; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .close-btn { float: right; font-size: 1.5rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <img id="wallpaper" src="" alt="" style="display: none;">
+    <div id="overlay"></div>
+
+    <div id="app-container">
+        <!-- Clock Widget -->
+        <div class="widget" id="clock-container">
+            <div id="clock-display">
+                <!-- Content generated by JS -->
+            </div>
+        </div>
+
+        <!-- Weather Widget -->
+        <div class="widget" id="weather-widget">
+            <div id="weather-icon">--</div>
+            <div id="temp">--°</div>
+            <div id="condition">Loading Weather...</div>
+        </div>
+
+        <!-- Calendar Widget -->
+        <div class="widget" id="calendar-widget">
+            <div class="cal-header" id="cal-month-year">Month Year</div>
+            <div class="calendar-grid" id="cal-grid">
+                <!-- Content generated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <button id="settings-btn">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+    </button>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal">
+        <div class="modal-content">
+            <span class="close-btn" id="close-settings">&times;</span>
+            <h2 style="margin-top:0">Settings</h2>
+
+            <div class="setting-group">
+                <h3>Wallpaper</h3>
+                <input type="file" id="wallpaper-upload" accept="image/*" style="color:white">
+            </div>
+
+            <div class="setting-group">
+                <h3>Clock Style</h3>
+                <div class="preview-grid">
+                    <div class="preview-card active" data-style="digital">Digital</div>
+                    <div class="preview-card" data-style="analogue">Analogue</div>
+                </div>
+            </div>
+
+            <div id="digital-options" class="setting-group">
+                <h3>Font Choice</h3>
+                <div class="preview-grid">
+                    <div class="preview-card active" data-font="Inter" style="font-family:'Inter'">Inter</div>
+                    <div class="preview-card" data-font="Bebas Neue" style="font-family:'Bebas Neue'">Bebas</div>
+                </div>
+            </div>
+
+            <div id="analogue-options" class="setting-group" style="display:none">
+                <h3>Analogue Style</h3>
+                <div class="preview-grid">
+                    <div class="preview-card active" data-face="minimal">Minimal</div>
+                    <div class="preview-card" data-face="classic">Classic</div>
+                    <div class="preview-card" data-face="outlined">Outlined</div>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Display Toggles</h3>
+                <div class="toggle-row">
+                    <span>Show Seconds</span>
+                    <label class="switch"><input type="checkbox" id="toggle-seconds" checked><span class="slider"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <span>Show Date</span>
+                    <label class="switch"><input type="checkbox" id="toggle-date" checked><span class="slider"></span></label>
+                </div>
+                <div class="toggle-row">
+                    <span>Show Day of Week</span>
+                    <label class="switch"><input type="checkbox" id="toggle-day" checked><span class="slider"></span></label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let state = {
+            clockStyle: 'digital', // digital, analogue
+            font: 'Inter',
+            analogueStyle: 'minimal',
+            showSeconds: true,
+            showDate: true,
+            showDay: true,
+            wallpaper: null
+        };
+
+        // Load Settings
+        function loadSettings() {
+            const saved = localStorage.getItem('standby_settings');
+            if (saved) {
+                state = { ...state, ...JSON.parse(saved) };
+                if (state.wallpaper) {
+                    const wp = document.getElementById('wallpaper');
+                    wp.src = state.wallpaper;
+                    wp.style.display = 'block';
+                }
+                // Update UI Switches
+                document.getElementById('toggle-seconds').checked = state.showSeconds;
+                document.getElementById('toggle-date').checked = state.showDate;
+                document.getElementById('toggle-day').checked = state.showDay;
+                
+                updatePreviewSelection();
+            }
+        }
+
+        function saveSettings() {
+            localStorage.setItem('standby_settings', JSON.stringify(state));
+        }
+
+        // --- Clock Logic ---
+        function updateClock() {
+            const now = new Date();
+            const clockDisplay = document.getElementById('clock-display');
+            
+            if (state.clockStyle === 'digital') {
+                renderDigital(now, clockDisplay);
+            } else {
+                renderAnalogue(now, clockDisplay);
+            }
+        }
+
+        function renderDigital(now, container) {
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+            
+            document.documentElement.style.setProperty('--font-clock', `'${state.font}'`);
+            
+            let html = `<div class="digital-time">${h}:${m}${state.showSeconds ? `<span style="opacity:0.5; font-size:0.6em">:${s}</span>` : ''}</div>`;
+            
+            if (state.showDay || state.showDate) {
+                html += `<div class="date-info">`;
+                if (state.showDay) html += now.toLocaleDateString('en-US', { weekday: 'long' }) + ' ';
+                if (state.showDate) html += now.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+                html += `</div>`;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function renderAnalogue(now, container) {
+            const s = now.getSeconds();
+            const m = now.getMinutes();
+            const h = now.getHours();
+
+            const sDeg = (s / 60) * 360;
+            const mDeg = (m / 60) * 360 + (s / 60) * 6;
+            const hDeg = (h / 12) * 360 + (m / 60) * 30;
+
+            let faceContent = '';
+            
+            // Draw face based on style
+            if (state.analogueStyle === 'classic') {
+                for (let i = 1; i <= 12; i++) {
+                    const angle = (i * 30) * (Math.PI / 180);
+                    const x = 50 + 40 * Math.sin(angle);
+                    const y = 50 - 40 * Math.cos(angle);
+                    faceContent += `<text x="${x}" y="${y}" fill="white" font-size="6" text-anchor="middle" dominant-baseline="central">${i}</text>`;
+                }
+            } else if (state.analogueStyle === 'outlined') {
+                faceContent += `<circle cx="50" cy="50" r="48" class="clock-face-outline" />`;
+            } else {
+                faceContent += `<circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" />`;
+            }
+
+            container.innerHTML = `
+                <svg id="analogue-clock" viewBox="0 0 100 100">
+                    ${faceContent}
+                    <line x1="50" y1="50" x2="50" y2="25" class="hand hour-hand" transform="rotate(${hDeg} 50 50)" />
+                    <line x1="50" y1="50" x2="50" y2="15" class="hand min-hand" transform="rotate(${mDeg} 50 50)" />
+                    ${state.showSeconds ? `<line x1="50" y1="50" x2="50" y2="10" class="hand sec-hand" transform="rotate(${sDeg} 50 50)" />` : ''}
+                    <circle cx="50" cy="50" r="2" fill="white" />
+                </svg>
+                ${(state.showDay || state.showDate) ? `
+                    <div class="date-info">
+                        ${state.showDay ? now.toLocaleDateString('en-US', { weekday: 'short' }) : ''} 
+                        ${state.showDate ? now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : ''}
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // --- Weather Logic ---
+        async function fetchWeather() {
+            if (!navigator.geolocation) return;
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const { latitude, longitude } = pos.coords;
+                try {
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                    const data = await res.json();
+                    updateWeatherUI(data.current_weather);
+                } catch (e) {
+                    console.error("Weather fetch failed");
+                }
+            });
+        }
+
+        function updateWeatherUI(data) {
+            const icons = {
+                0: '☀️', 1: '🌤️', 2: '⛅', 3: '☁️',
+                45: '🌫️', 48: '🌫️', 51: '🌦️', 61: '🌧️',
+                71: '❄️', 95: '⛈️'
+            };
+            
+            document.getElementById('weather-icon').textContent = icons[data.weathercode] || '⛅';
+            document.getElementById('temp').textContent = Math.round(data.temperature) + '°';
+            
+            const conditions = {
+                0: 'Clear Sky', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast',
+                45: 'Fog', 61: 'Rain', 71: 'Snow', 95: 'Thunderstorm'
+            };
+            document.getElementById('condition').textContent = conditions[data.weathercode] || 'Partly Cloudy';
+        }
+
+        // --- Calendar Logic ---
+        function updateCalendar() {
+            const now = new Date();
+            const month = now.getMonth();
+            const year = now.getFullYear();
+            
+            document.getElementById('cal-month-year').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            const grid = document.getElementById('cal-grid');
+            grid.innerHTML = '';
+            
+            ['S','M','T','W','T','F','S'].forEach(d => {
+                grid.innerHTML += `<div class="day-label">${d}</div>`;
+            });
+            
+            for (let i = 0; i < firstDay; i++) {
+                grid.innerHTML += `<div></div>`;
+            }
+            
+            for (let d = 1; d <= daysInMonth; d++) {
+                const isToday = d === now.getDate();
+                grid.innerHTML += `<div class="day ${isToday ? 'today' : ''}">${d}</div>`;
+            }
+        }
+
+        // --- Settings UI Logic ---
+        const modal = document.getElementById('settings-modal');
+        document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
+        document.getElementById('close-settings').onclick = () => modal.style.display = 'none';
+        window.onclick = (e) => { if (e.target == modal) modal.style.display = 'none'; };
+
+        // Handle Card Selections
+        document.querySelectorAll('.preview-card').forEach(card => {
+            card.onclick = function() {
+                const parent = this.parentElement;
+                parent.querySelectorAll('.preview-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+
+                if (this.dataset.style) {
+                    state.clockStyle = this.dataset.style;
+                    document.getElementById('digital-options').style.display = state.clockStyle === 'digital' ? 'block' : 'none';
+                    document.getElementById('analogue-options').style.display = state.clockStyle === 'analogue' ? 'block' : 'none';
+                }
+                if (this.dataset.font) state.font = this.dataset.font;
+                if (this.dataset.face) state.analogueStyle = this.dataset.face;
+                
+                saveSettings();
+                updateClock();
+            };
+        });
+
+        // Toggle Event Listeners
+        document.getElementById('toggle-seconds').onchange = (e) => { state.showSeconds = e.target.checked; saveSettings(); };
+        document.getElementById('toggle-date').onchange = (e) => { state.showDate = e.target.checked; saveSettings(); };
+        document.getElementById('toggle-day').onchange = (e) => { state.showDay = e.target.checked; saveSettings(); };
+
+        // Wallpaper Upload
+        document.getElementById('wallpaper-upload').onchange = function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const base64 = event.target.result;
+                state.wallpaper = base64;
+                const wp = document.getElementById('wallpaper');
+                wp.src = base64;
+                wp.style.display = 'block';
+                saveSettings();
+            };
+            reader.readAsDataURL(file);
+        };
+
+        function updatePreviewSelection() {
+            document.querySelectorAll('.preview-card').forEach(card => {
+                card.classList.remove('active');
+                if (card.dataset.style === state.clockStyle) card.classList.add('active');
+                if (card.dataset.font === state.font) card.classList.add('active');
+                if (card.dataset.face === state.analogueStyle) card.classList.add('active');
+            });
+            document.getElementById('digital-options').style.display = state.clockStyle === 'digital' ? 'block' : 'none';
+            document.getElementById('analogue-options').style.display = state.clockStyle === 'analogue' ? 'block' : 'none';
+        }
+
+        // --- Screen Wake Lock ---
+        let wakeLock = null;
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) {
+                console.error(`${err.name}, ${err.message}`);
+            }
+        }
+
+        // Initialize
+        loadSettings();
+        setInterval(updateClock, 1000);
+        updateClock();
+        updateCalendar();
+        fetchWeather();
+        setInterval(fetchWeather, 600000); // Update weather every 10 mins
+
+        // Request wake lock on first interaction
+        document.addEventListener('click', requestWakeLock, { once: true });
+    </script>
+</body>
+</html>
