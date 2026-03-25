@@ -19,7 +19,7 @@
             --accent-color: #ff3b30;
             --ios-blue: #0a84ff;
             --padding-edge: 24px;
-            --gap: 20px; /* Matched to divider size */
+            --gap: 20px;
             --font-clamp-normal: clamp(3rem, 10vw, 9rem);
             --font-clamp-reduced: clamp(2rem, 6vw, 5rem);
             --content-scale-mult: 1.0;
@@ -28,7 +28,15 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: #fff; }
 
-        #wallpaper-bg { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: -2; transition: background-image 0.5s; }
+        /* Wallpaper Background */
+        #wallpaper-bg { 
+            position: fixed; inset: 0; 
+            background-size: cover; 
+            background-position: center; 
+            background-color: transparent; /* Prevent color overrides */
+            z-index: -2; 
+            transition: background-image 0.5s; 
+        }
         #dark-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: -1; }
 
         #app-container { display: grid; width: 100vw; height: 100vh; padding: var(--padding-edge); }
@@ -51,25 +59,11 @@
             #div-v, #div-h-land { display: none; }
         }
 
-        .divider { 
-            display: flex; align-items: center; justify-content: center; 
-            background: transparent; position: relative; z-index: 10; 
-            touch-action: none;
-        }
-        .divider::after { 
-            content: ''; background: #fff; 
-            border-radius: 10px; transition: all 0.2s; 
-            opacity: 0.25; 
-        }
-        .divider:hover::after, .divider.dragging::after { 
-            background: var(--ios-blue); 
-            box-shadow: 0 0 12px var(--ios-blue); 
-            opacity: 1; 
-        }
-
+        .divider { display: flex; align-items: center; justify-content: center; background: transparent; position: relative; z-index: 10; touch-action: none; }
+        .divider::after { content: ''; background: #fff; border-radius: 10px; transition: all 0.2s; opacity: 0.25; }
+        .divider:hover::after, .divider.dragging::after { background: var(--ios-blue); box-shadow: 0 0 12px var(--ios-blue); opacity: 1; }
         .divider.v { cursor: col-resize; width: var(--gap); } 
         .divider.v::after { width: 4px; height: 40px; }
-        
         .divider.h { cursor: row-resize; height: var(--gap); } 
         .divider.h::after { width: 40px; height: 4px; }
 
@@ -83,6 +77,19 @@
         #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .digital-time { line-height: 1; text-align: center; font-variant-numeric: tabular-nums; font-size: var(--font-clamp-normal); }
         
+        /* Square Clock Style */
+        .square-clock-box {
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 8px;
+            padding: clamp(10px, 4vw, 40px);
+            background: rgba(255,255,255,0.03);
+            box-shadow: inset 0 0 30px rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
         #clock-widget.h-lt-200 .date-info { display: none !important; }
         #clock-widget.h-lt-200 .digital-time, #clock-widget.w-lt-250 .digital-time { font-size: var(--font-clamp-reduced) !important; }
         #clock-widget.w-lt-250 .digital-seconds { display: none !important; }
@@ -93,10 +100,10 @@
         #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
         #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
 
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 95%; text-align: center; }
-        .day-cell { display: flex; align-items: center; justify-content: center; }
-        .day-header { opacity: 0.4; font-weight: bold; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
-        .today-circle { background: #fff; color: #000; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 95%; text-align: center; font-size: 0.9rem; }
+        .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; }
+        .day-header { height: 24px; opacity: 0.4; font-weight: bold; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
+        .today-circle { background: var(--accent-color); color: #fff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
 
         #calendar-widget.h-lt-220 #cal-title { display: none !important; }
         #calendar-widget.h-lt-150 .day-header { display: none !important; }
@@ -106,9 +113,10 @@
         #settings-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1001; backdrop-filter: blur(15px); }
         .modal-content { background: #1c1c1e; width: 90%; max-width: 500px; max-height: 85vh; border-radius: 30px; padding: 30px; overflow-y: auto; border: 1px solid #38383a; position: relative; touch-action: pan-y; }
         .modal-close-x { position: absolute; top: 20px; right: 20px; background: none; border: none; color: #8e8e93; font-size: 1.8rem; cursor: pointer; }
+
         .setting-section { margin-bottom: 25px; }
         .setting-section h3 { font-size: 0.75rem; color: #8e8e93; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
-        .preview-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .preview-card { background: #2c2c2e; border: 2px solid transparent; border-radius: 14px; padding: 14px; text-align: center; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
         .preview-card.active { border-color: var(--ios-blue); background: #3a3a3c; }
         .toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #38383a; }
@@ -118,7 +126,6 @@
         .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
         input:checked + .slider-toggle { background-color: #34c759; }
         input:checked + .slider-toggle:before { transform: translateX(22px); }
-        
         #wp-status { display: block; margin-top: 8px; font-size: 0.85rem; height: 1.2rem; }
         .status-success { color: #34c759; font-weight: 600; }
     </style>
@@ -152,18 +159,22 @@
         <div class="modal-content">
             <button class="modal-close-x" id="modal-cancel">&times;</button>
             <h2 style="margin-top:0">Settings</h2>
+            
             <div class="setting-section">
                 <h3>Wallpaper</h3>
                 <input type="file" id="wp-input" accept="image/*" style="width:100%; color:white;">
                 <span id="wp-status"></span>
             </div>
+
             <div class="setting-section">
                 <h3>Clock Style</h3>
-                <div class="preview-grid">
+                <div class="preview-grid" style="grid-template-columns: repeat(2, 1fr);">
                     <div class="preview-card" data-key="clockStyle" data-val="digital">Digital</div>
                     <div class="preview-card" data-key="clockStyle" data-val="analogue">Analogue</div>
+                    <div class="preview-card" data-key="clockStyle" data-val="square">Square</div>
                 </div>
             </div>
+
             <div class="setting-section">
                 <h3>Content Scale</h3>
                 <div style="padding:10px 0;">
@@ -173,6 +184,7 @@
                     </div>
                 </div>
             </div>
+
             <div id="digital-options">
                 <div class="setting-section">
                     <h3>Digital Font</h3>
@@ -191,14 +203,16 @@
                     </div>
                 </div>
             </div>
+
             <div class="setting-section" id="analogue-faces" style="display:none">
                 <h3>Analogue Face</h3>
-                <div class="preview-grid">
+                <div class="preview-grid" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="preview-card" data-key="face" data-val="minimal">Minimal</div>
                     <div class="preview-card" data-key="face" data-val="classic">Classic</div>
                     <div class="preview-card" data-key="face" data-val="outlined">Outlined</div>
                 </div>
             </div>
+
             <div class="setting-section">
                 <h3>Display</h3>
                 <div class="toggle-item"><span>Seconds</span><label class="switch"><input type="checkbox" id="check-seconds"><span class="slider-toggle"></span></label></div>
@@ -234,9 +248,7 @@
             let t; return function(...a) { clearTimeout(t); t = setTimeout(() => func.apply(this, a), wait); };
         }
 
-        function persist() {
-            localStorage.setItem('standby_v23', JSON.stringify(state));
-        }
+        function persist() { localStorage.setItem('standby_v23', JSON.stringify(state)); }
 
         function applyScaleToClamp(clamp, mult) {
             return clamp.replace(/(\d*\.?\d+)(rem|px)/g, (match, num, unit) => (parseFloat(num) * mult).toFixed(2) + unit);
@@ -260,9 +272,7 @@
                 try { if (wakeLock) await wakeLock.release(); wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
             }
         }
-        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') getWakeLock(); });
 
-        /** CLOCK RENDERING **/
         let clockCanvas, ctx;
         function drawAnalogue() {
             if (state.clockStyle !== 'analogue') return;
@@ -302,12 +312,24 @@
             const reducedIdx = Math.max(0, sizes.indexOf(state.clockSize) - 1);
             const baseReduced = isLand ? fontClamps[sizes[reducedIdx]].l : fontClamps[sizes[reducedIdx]].p;
             root.style.setProperty('--font-clamp-reduced', applyScaleToClamp(baseReduced, mult));
+            
             const now = new Date(), container = document.getElementById('clock-content');
-            if (state.clockStyle === 'digital') {
+            
+            if (state.clockStyle === 'digital' || state.clockStyle === 'square') {
                 const s = state.showSeconds ? `<span class="digital-seconds" style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
-                container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>` +
-                ((state.showDate || state.showDay) ? `<div class="date-info" style="font-size:1.4rem; opacity:0.8; margin-top:8px; font-weight:300;">${state.showDay ? now.toLocaleDateString('en-US',{weekday:'long'}) : ''}${state.showDay && state.showDate ? ', ':''}${state.showDate ? now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</div>` : '');
-            } else { drawAnalogue(); }
+                let html = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>`;
+                
+                if (state.clockStyle === 'square') {
+                    html = `<div class="square-clock-box">${html}</div>`;
+                }
+                
+                if (state.showDate || state.showDay) {
+                    html += `<div class="date-info" style="font-size:1.4rem; opacity:0.8; margin-top:8px; font-weight:300;">${state.showDay ? now.toLocaleDateString('en-US',{weekday:'long'}) : ''}${state.showDay && state.showDate ? ', ':''}${state.showDate ? now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</div>`;
+                }
+                container.innerHTML = html;
+            } else { 
+                drawAnalogue(); 
+            }
         }
 
         function updateWeatherScaling(el, w, h) {
@@ -353,7 +375,6 @@
             document.querySelectorAll('.widget').forEach(w => observer.observe(w));
         }
 
-        /** GRID INTERACTION **/
         function initGridInteraction() {
             const container = document.getElementById('app-container'), minPx = 150;
             const handleDrag = (divider, type) => {
@@ -430,11 +451,10 @@
             updateCalendarScaling(calX, cr.width, cr.height);
         }
 
-        /** WALLPAPER & PERSISTENCE **/
         function tryPersistToStorage(data) {
             try { 
-                const newState = { ...state, wallpaper: data };
-                localStorage.setItem('standby_v23', JSON.stringify(newState)); 
+                state.wallpaper = data;
+                localStorage.setItem('standby_v23', JSON.stringify(state)); 
                 return true; 
             } catch (e) { return false; }
         }
@@ -460,10 +480,10 @@
                         const a2 = run(1280, 0.5);
                         if (!tryPersistToStorage(a2)) {
                             const a3 = run(800, 0.5);
-                            if (tryPersistToStorage(a3)) state.wallpaper = a3;
+                            if (tryPersistToStorage(a3)) persist();
                             else alert("Storage full.");
-                        } else state.wallpaper = a2;
-                    }
+                        } else persist();
+                    } else persist();
                 };
                 img.src = ev.target.result;
             };
@@ -471,17 +491,28 @@
         }
 
         function init() {
+            // Legacy Clean
+            ['standby_v22','standby_v21','standby_v20','standby_v19'].forEach(k => localStorage.removeItem(k));
+            
             const saved = localStorage.getItem('standby_v23');
             if (saved) state = { ...state, ...JSON.parse(saved) };
-            if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
+            
+            console.log('StandBy Loaded. WP:', !!state.wallpaper);
+            
+            requestAnimationFrame(() => {
+                if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = 'url(' + state.wallpaper + ')';
+            });
+
             document.getElementById('check-seconds').checked = state.showSeconds;
             document.getElementById('check-date').checked = state.showDate;
             document.getElementById('check-day').checked = state.showDay;
             document.getElementById('clock-size-slider').value = sizes.indexOf(state.clockSize);
             document.getElementById('content-scale-slider').value = scaleKeys.indexOf(state.contentScale);
+            
             applyGrid(); 
             const wx = document.getElementById('weather-widget'), wr = wx.getBoundingClientRect();
             updateWeatherScaling(wx, wr.width, wr.height);
+            
             updateActiveCards(); initResizeObservers(); updateCalendar(); fetchWeather(); 
             setInterval(fetchWeather, 600000); initGridInteraction(); getWakeLock(); 
             const t = () => { updateClock(); setTimeout(t, 1000 - (Date.now() % 1000)); }; t();
@@ -497,11 +528,14 @@
         document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
         document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
         modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+        
         document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { 
             state[card.dataset.key] = card.dataset.val; 
             updateActiveCards(); updateClock(); persist();
         });
+        
         document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); persist(); };
+        
         document.getElementById('content-scale-slider').oninput = (e) => { 
             state.contentScale = scaleKeys[e.target.value]; 
             updateClock(); 
@@ -511,11 +545,14 @@
             updateCalendarScaling(cx, cr.width, cr.height);
             persist();
         };
+
         ['seconds', 'date', 'day'].forEach(k => document.getElementById(`check-${k}`).onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); persist(); });
         document.getElementById('wp-input').onchange = (e) => { if (e.target.files[0]) processWP(e.target.files[0]); };
+        
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
-            document.getElementById('digital-options').style.display = state.clockStyle === 'digital' ? 'block' : 'none';
+            const isDigital = (state.clockStyle === 'digital' || state.clockStyle === 'square');
+            document.getElementById('digital-options').style.display = isDigital ? 'block' : 'none';
             document.getElementById('analogue-faces').style.display = state.clockStyle === 'analogue' ? 'block' : 'none';
         }
         init();
