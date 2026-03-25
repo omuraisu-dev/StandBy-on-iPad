@@ -263,21 +263,51 @@
             animateAurora();
         }
 
-        function animateAurora() {
-            if (auroraCanvas.width === 0 || auroraCanvas.height === 0) resizeAurora();
-            const w = auroraCanvas.width, h = auroraCanvas.height, time = Date.now(), theme = auroraThemes[state.auroraTheme].colors;
-            aCtx.globalAlpha = 1; aCtx.fillStyle = '#000'; aCtx.fillRect(0, 0, w, h);
-            blobs.forEach((b, i) => {
-                const color = theme[i % theme.length];
-                const driftX = Math.sin(time * b.speed + b.phase) * (w * 0.3);
-                const driftY = Math.cos(time * b.speed * 0.8 + b.phase) * (h * 0.3);
-                const curX = (b.x % w) + driftX; const curY = (b.y % h) + driftY;
-                const grad = aCtx.createRadialGradient(curX, curY, 0, curX, curY, b.r);
-                grad.addColorStop(0, color); grad.addColorStop(1, 'transparent');
-                aCtx.globalAlpha = 0.45; aCtx.fillStyle = grad; aCtx.beginPath(); aCtx.arc(curX, curY, b.r, 0, Math.PI * 2); aCtx.fill();
-            });
-            aCtx.globalAlpha = 1; auroraReq = requestAnimationFrame(animateAurora);
-        }
+        <script>
+function animateAurora() {
+    if (auroraCanvas.width === 0 || auroraCanvas.height === 0) resizeAurora();
+    const w = auroraCanvas.width;
+    const h = auroraCanvas.height;
+    const time = Date.now();
+    const theme = auroraThemes[state.auroraTheme].colors;
+
+    // Softer fade instead of hard black wipe
+    aCtx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    aCtx.fillRect(0, 0, w, h);
+
+    // 🔥 Additive blending for glow
+    aCtx.globalCompositeOperation = 'lighter';
+
+    blobs.forEach((b, i) => {
+        const color = theme[i % theme.length];
+
+        const driftX = Math.sin(time * b.speed + b.phase) * (w * 0.3);
+        const driftY = Math.cos(time * b.speed * 0.8 + b.phase) * (h * 0.3);
+
+        const curX = (b.x % w) + driftX;
+        const curY = (b.y % h) + driftY;
+
+        const grad = aCtx.createRadialGradient(curX, curY, 0, curX, curY, b.r);
+
+        grad.addColorStop(0, color);
+        grad.addColorStop(1, 'transparent');
+
+        // stronger visibility
+        aCtx.globalAlpha = 0.8;
+
+        aCtx.fillStyle = grad;
+        aCtx.beginPath();
+        aCtx.arc(curX, curY, b.r, 0, Math.PI * 2);
+        aCtx.fill();
+    });
+
+    // Reset blending mode
+    aCtx.globalCompositeOperation = 'source-over';
+    aCtx.globalAlpha = 1;
+
+    auroraReq = requestAnimationFrame(animateAurora);
+}
+</script>
 
         /** GRID & CLOCK RENDERING **/
         function applyGrid() {
