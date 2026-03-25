@@ -19,7 +19,7 @@
             --accent-color: #ff3b30;
             --ios-blue: #0a84ff;
             --padding-edge: 24px;
-            --gap: 12px;
+            --gap: 20px; /* Matched to divider size */
             --font-clamp-normal: clamp(3rem, 10vw, 9rem);
             --font-clamp-reduced: clamp(2rem, 6vw, 5rem);
             --content-scale-mult: 1.0;
@@ -51,26 +51,26 @@
             #div-v, #div-h-land { display: none; }
         }
 
-        /* GRID DIVIDERS */
         .divider { 
-            align-items: center; justify-content: center; 
+            display: flex; align-items: center; justify-content: center; 
             background: transparent; position: relative; z-index: 10; 
             touch-action: none;
         }
         .divider::after { 
-            content: ''; background: rgba(255,255,255,0.4); 
+            content: ''; background: #fff; 
             border-radius: 10px; transition: all 0.2s; 
-            opacity: 0.25; /* Always subtly visible */
+            opacity: 0.25; 
         }
         .divider:hover::after, .divider.dragging::after { 
             background: var(--ios-blue); 
-            box-shadow: 0 0 10px var(--ios-blue); 
+            box-shadow: 0 0 12px var(--ios-blue); 
             opacity: 1; 
         }
 
-        .divider.v { cursor: col-resize; width: var(--gap); padding: 0 10px; }
+        .divider.v { cursor: col-resize; width: var(--gap); } 
         .divider.v::after { width: 4px; height: 40px; }
-        .divider.h { cursor: row-resize; height: var(--gap); padding: 10px 0; }
+        
+        .divider.h { cursor: row-resize; height: var(--gap); } 
         .divider.h::after { width: 40px; height: 4px; }
 
         .widget {
@@ -87,6 +87,11 @@
         #clock-widget.h-lt-200 .digital-time, #clock-widget.w-lt-250 .digital-time { font-size: var(--font-clamp-reduced) !important; }
         #clock-widget.w-lt-250 .digital-seconds { display: none !important; }
         #clock-widget.gt-400 .date-info { margin-top: calc(24px * var(--content-scale-mult)); font-weight: 400; }
+
+        #weather-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 5px; }
+        #temp { font-size: 3.5rem; font-weight: 300; line-height: 1; }
+        #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
+        #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 95%; text-align: center; }
         .day-cell { display: flex; align-items: center; justify-content: center; }
@@ -113,6 +118,7 @@
         .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
         input:checked + .slider-toggle { background-color: #34c759; }
         input:checked + .slider-toggle:before { transform: translateX(22px); }
+        
         #wp-status { display: block; margin-top: 8px; font-size: 0.85rem; height: 1.2rem; }
         .status-success { color: #34c759; font-weight: 600; }
     </style>
@@ -228,6 +234,10 @@
             let t; return function(...a) { clearTimeout(t); t = setTimeout(() => func.apply(this, a), wait); };
         }
 
+        function persist() {
+            localStorage.setItem('standby_v23', JSON.stringify(state));
+        }
+
         function applyScaleToClamp(clamp, mult) {
             return clamp.replace(/(\d*\.?\d+)(rem|px)/g, (match, num, unit) => (parseFloat(num) * mult).toFixed(2) + unit);
         }
@@ -236,11 +246,11 @@
             const container = document.getElementById('app-container');
             const isLand = window.matchMedia("(orientation: landscape)").matches;
             if (isLand) {
-                container.style.gridTemplateColumns = `${state.gridL.c}fr 12px 1fr`;
-                container.style.gridTemplateRows = `${state.gridL.r}fr 12px 1fr`;
+                container.style.gridTemplateColumns = `${state.gridL.c}fr 20px 1fr`;
+                container.style.gridTemplateRows = `${state.gridL.r}fr 20px 1fr`;
             } else {
                 container.style.gridTemplateColumns = `1fr`;
-                container.style.gridTemplateRows = `${state.gridP.r1}fr 12px ${state.gridP.r2}fr 12px ${state.gridP.r3}fr`;
+                container.style.gridTemplateRows = `${state.gridP.r1}fr 20px ${state.gridP.r2}fr 20px ${state.gridP.r3}fr`;
             }
         }
 
@@ -252,6 +262,7 @@
         }
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') getWakeLock(); });
 
+        /** CLOCK RENDERING **/
         let clockCanvas, ctx;
         function drawAnalogue() {
             if (state.clockStyle !== 'analogue') return;
@@ -283,8 +294,8 @@
 
         function updateClock() {
             const isLand = window.matchMedia("(orientation: landscape)").matches;
-            const root = document.documentElement;
             const mult = scaleMap[state.contentScale];
+            const root = document.documentElement;
             root.style.setProperty('--content-scale-mult', mult);
             const baseNormal = isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p;
             root.style.setProperty('--font-clamp-normal', applyScaleToClamp(baseNormal, mult));
@@ -342,14 +353,15 @@
             document.querySelectorAll('.widget').forEach(w => observer.observe(w));
         }
 
+        /** GRID INTERACTION **/
         function initGridInteraction() {
             const container = document.getElementById('app-container'), minPx = 150;
             const handleDrag = (divider, type) => {
                 const onMove = (e) => {
                     if (e.touches && e.touches.length === 0) return;
-                    const t = e.touches ? e.touches[0] : e, rect = container.getBoundingClientRect(), pad = 24, gap = 12;
+                    const t = e.touches ? e.touches[0] : e, rect = container.getBoundingClientRect(), pad = 24, gap = 20;
                     if (type === 'v') {
-                        const x = Math.max(minPx, Math.min(rect.width - minPx, t.clientX - rect.left - pad));
+                        const x = Math.max(minPx, Math.min(rect.width - pad * 2 - gap - minPx, t.clientX - rect.left - pad));
                         state.gridL.c = x / (rect.width - pad * 2 - gap - x);
                     } else if (type === 'h-land') {
                         const y = Math.max(minPx, Math.min(rect.height - pad * 2 - gap - minPx, t.clientY - rect.top - pad));
@@ -371,7 +383,7 @@
                     divider.classList.remove('dragging');
                     window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onEnd);
                     window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd);
-                    localStorage.setItem('standby_v22', JSON.stringify(state));
+                    persist();
                 };
                 const startFunc = (e) => {
                     divider.classList.add('dragging');
@@ -418,11 +430,11 @@
             updateCalendarScaling(calX, cr.width, cr.height);
         }
 
-        /** WALLPAPER & STORAGE **/
+        /** WALLPAPER & PERSISTENCE **/
         function tryPersistToStorage(data) {
             try { 
                 const newState = { ...state, wallpaper: data };
-                localStorage.setItem('standby_v22', JSON.stringify(newState)); 
+                localStorage.setItem('standby_v23', JSON.stringify(newState)); 
                 return true; 
             } catch (e) { return false; }
         }
@@ -440,26 +452,17 @@
                     };
                     
                     const a1 = run(1280, 0.75);
-                    // Immediate UI application
                     state.wallpaper = a1; document.getElementById('wallpaper-bg').style.backgroundImage = `url(${a1})`;
-                    const s = document.getElementById('wp-status'); s.textContent = "✓ Saved"; s.className = "status-success";
-                    setTimeout(() => s.textContent = "", 2000);
+                    const sS = document.getElementById('wp-status'); sS.textContent = "✓ Saved"; sS.className = "status-success";
+                    setTimeout(() => sS.textContent = "", 2000);
 
-                    // Tiered persistence
                     if (!tryPersistToStorage(a1)) {
                         const a2 = run(1280, 0.5);
                         if (!tryPersistToStorage(a2)) {
                             const a3 = run(800, 0.5);
-                            if (tryPersistToStorage(a3)) {
-                                state.wallpaper = a3;
-                                localStorage.setItem('standby_v22', JSON.stringify(state));
-                            } else alert("Storage full.");
-                        } else {
-                            state.wallpaper = a2;
-                            localStorage.setItem('standby_v22', JSON.stringify(state));
-                        }
-                    } else {
-                        localStorage.setItem('standby_v22', JSON.stringify(state));
+                            if (tryPersistToStorage(a3)) state.wallpaper = a3;
+                            else alert("Storage full.");
+                        } else state.wallpaper = a2;
                     }
                 };
                 img.src = ev.target.result;
@@ -468,7 +471,7 @@
         }
 
         function init() {
-            const saved = localStorage.getItem('standby_v22');
+            const saved = localStorage.getItem('standby_v23');
             if (saved) state = { ...state, ...JSON.parse(saved) };
             if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
             document.getElementById('check-seconds').checked = state.showSeconds;
@@ -487,7 +490,7 @@
 
         window.addEventListener('orientationchange', () => {
             state.gridL = { c: 1, r: 1 }; state.gridP = { r1: 1, r2: 1, r3: 1 };
-            applyGrid(); updateClock(); localStorage.setItem('standby_v22', JSON.stringify(state));
+            applyGrid(); updateClock(); persist();
         });
 
         const modal = document.getElementById('settings-modal');
@@ -496,9 +499,9 @@
         modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
         document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { 
             state[card.dataset.key] = card.dataset.val; 
-            updateActiveCards(); updateClock(); localStorage.setItem('standby_v22', JSON.stringify(state));
+            updateActiveCards(); updateClock(); persist();
         });
-        document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); localStorage.setItem('standby_v22', JSON.stringify(state)); };
+        document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); persist(); };
         document.getElementById('content-scale-slider').oninput = (e) => { 
             state.contentScale = scaleKeys[e.target.value]; 
             updateClock(); 
@@ -506,9 +509,9 @@
             updateWeatherScaling(wx, wr.width, wr.height);
             const cx = document.getElementById('calendar-widget'), cr = cx.getBoundingClientRect();
             updateCalendarScaling(cx, cr.width, cr.height);
-            localStorage.setItem('standby_v22', JSON.stringify(state));
+            persist();
         };
-        ['seconds', 'date', 'day'].forEach(k => document.getElementById(`check-${k}`).onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); localStorage.setItem('standby_v22', JSON.stringify(state)); });
+        ['seconds', 'date', 'day'].forEach(k => document.getElementById(`check-${k}`).onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); persist(); });
         document.getElementById('wp-input').onchange = (e) => { if (e.target.files[0]) processWP(e.target.files[0]); };
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
