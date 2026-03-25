@@ -20,8 +20,6 @@
             --ios-blue: #0a84ff;
             --padding-edge: 24px;
             --gap: 12px;
-            
-            /* Dynamic Font Variables */
             --font-clamp-normal: clamp(3rem, 10vw, 9rem);
             --font-clamp-reduced: clamp(2rem, 6vw, 5rem);
             --content-scale-mult: 1.0;
@@ -53,12 +51,32 @@
             #div-v, #div-h-land { display: none; }
         }
 
-        .divider { align-items: center; justify-content: center; background: transparent; position: relative; z-index: 10; }
-        .divider::after { content: ''; background: rgba(255,255,255,0.2); border-radius: 10px; transition: all 0.2s; }
-        .divider:hover::after, .divider.dragging::after { background: var(--ios-blue); box-shadow: 0 0 10px var(--ios-blue); }
-        .divider.v { cursor: col-resize; width: var(--gap); }
+        /* HARDENED DIVIDERS FOR TOUCH */
+        .divider { 
+            align-items: center; justify-content: center; 
+            background: transparent; position: relative; z-index: 10; 
+            touch-action: none; /* Stop browser from intercepting touch */
+        }
+        .divider::after { 
+            content: ''; background: rgba(255,255,255,0.2); 
+            border-radius: 10px; transition: all 0.2s; 
+            opacity: 0; /* Default hidden for mouse */
+        }
+        
+        @media (hover: none) {
+            .divider::after { opacity: 0.3; } /* Always visible on iPad/Touch */
+        }
+
+        .divider:hover::after, .divider.dragging::after { 
+            background: var(--ios-blue); 
+            box-shadow: 0 0 10px var(--ios-blue); 
+            opacity: 1 !important; 
+        }
+
+        .divider.v { cursor: col-resize; width: var(--gap); padding: 0 10px; } /* Wider hit area */
         .divider.v::after { width: 4px; height: 40px; }
-        .divider.h { cursor: row-resize; height: var(--gap); }
+        
+        .divider.h { cursor: row-resize; height: var(--gap); padding: 10px 0; } /* Taller hit area */
         .divider.h::after { width: 40px; height: 4px; }
 
         .widget {
@@ -71,20 +89,18 @@
         #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .digital-time { line-height: 1; text-align: center; font-variant-numeric: tabular-nums; font-size: var(--font-clamp-normal); }
         
-        /* Widget States managed by JS classes */
         #clock-widget.h-lt-200 .date-info { display: none !important; }
         #clock-widget.h-lt-200 .digital-time, #clock-widget.w-lt-250 .digital-time { font-size: var(--font-clamp-reduced) !important; }
         #clock-widget.w-lt-250 .digital-seconds { display: none !important; }
         #clock-widget.gt-400 .date-info { margin-top: calc(24px * var(--content-scale-mult)); font-weight: 400; }
 
-        #calendar-widget.h-lt-220 #cal-title { display: none !important; }
-        #calendar-widget.h-lt-150 .day-header { display: none !important; }
-
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 95%; text-align: center; }
-        /* Height/Size styles below are updated via JS to include multiplier */
         .day-cell { display: flex; align-items: center; justify-content: center; }
         .day-header { opacity: 0.4; font-weight: bold; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
         .today-circle { background: #fff; color: #000; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
+
+        #calendar-widget.h-lt-220 #cal-title { display: none !important; }
+        #calendar-widget.h-lt-150 .day-header { display: none !important; }
 
         /* Settings UI */
         #settings-btn { position: fixed; bottom: 25px; right: 25px; background: var(--glass); border: 1px solid var(--glass-border); color: #fff; padding: 14px; border-radius: 50%; font-size: 1.6rem; z-index: 1000; cursor: pointer; }
@@ -94,7 +110,7 @@
         .setting-section { margin-bottom: 25px; }
         .setting-section h3 { font-size: 0.75rem; color: #8e8e93; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
         .preview-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-        .preview-card { background: #2c2c2e; border: 2px solid transparent; border-radius: 14px; padding: 14px; text-align: center; font-size: 0.85rem; cursor: pointer; }
+        .preview-card { background: #2c2c2e; border: 2px solid transparent; border-radius: 14px; padding: 14px; text-align: center; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
         .preview-card.active { border-color: var(--ios-blue); background: #3a3a3c; }
         .toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #38383a; }
         .switch { position: relative; width: 48px; height: 26px; }
@@ -103,10 +119,8 @@
         .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
         input:checked + .slider-toggle { background-color: #34c759; }
         input:checked + .slider-toggle:before { transform: translateX(22px); }
-        
         #wp-status { display: block; margin-top: 8px; font-size: 0.85rem; height: 1.2rem; }
         .status-success { color: #34c759; font-weight: 600; }
-        #apply-btn { width: 100%; padding: 18px; border-radius: 16px; background: #0a84ff; color: #fff; border: none; font-weight: 600; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -150,17 +164,15 @@
                     <div class="preview-card" data-key="clockStyle" data-val="analogue">Analogue</div>
                 </div>
             </div>
-            
             <div class="setting-section">
                 <h3>Content Scale</h3>
                 <div style="padding:10px 0;">
                     <input type="range" id="content-scale-slider" min="0" max="4" step="1" value="2" style="width:100%;">
-                    <div style="display:flex; justify-content:space-between; font-size:0.65rem; color:#8e8e93; margin-top:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:#8e8e93; margin-top:8px;">
                         <span>Compact</span><span>Small</span><span>Normal</span><span>Large</span><span>Fill</span>
                     </div>
                 </div>
             </div>
-
             <div id="digital-options">
                 <div class="setting-section">
                     <h3>Digital Font</h3>
@@ -179,7 +191,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="setting-section" id="analogue-faces" style="display:none">
                 <h3>Analogue Face</h3>
                 <div class="preview-grid">
@@ -188,14 +199,13 @@
                     <div class="preview-card" data-key="face" data-val="outlined">Outlined</div>
                 </div>
             </div>
-
             <div class="setting-section">
                 <h3>Display</h3>
                 <div class="toggle-item"><span>Seconds</span><label class="switch"><input type="checkbox" id="check-seconds"><span class="slider-toggle"></span></label></div>
                 <div class="toggle-item"><span>Date</span><label class="switch"><input type="checkbox" id="check-date"><span class="slider-toggle"></span></label></div>
                 <div class="toggle-item"><span>Day</span><label class="switch"><input type="checkbox" id="check-day"><span class="slider-toggle"></span></label></div>
             </div>
-            <button id="apply-btn">Apply Changes</button>
+            <p style="text-align:center; color:#8e8e93; font-size:0.7rem; margin-top:20px; opacity:0.5;">Settings save automatically.</p>
         </div>
     </div>
 
@@ -243,12 +253,15 @@
         let wakeLock = null;
         async function getWakeLock() {
             if ('wakeLock' in navigator) {
-                try { if (wakeLock) await wakeLock.release(); wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+                try {
+                    if (wakeLock) await wakeLock.release();
+                    wakeLock = await navigator.wakeLock.request('screen');
+                } catch (e) {}
             }
         }
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') getWakeLock(); });
 
-        /** ANALOGUE ENGINE **/
+        /** CLOCK RENDERING **/
         let clockCanvas, ctx;
         function drawAnalogue() {
             if (state.clockStyle !== 'analogue') return;
@@ -279,13 +292,11 @@
 
         function updateClock() {
             const isLand = window.matchMedia("(orientation: landscape)").matches;
-            const mult = scaleMap[state.contentScale];
             const root = document.documentElement;
+            const mult = scaleMap[state.contentScale];
             root.style.setProperty('--content-scale-mult', mult);
-
             const baseNormal = isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p;
             root.style.setProperty('--font-clamp-normal', applyScaleToClamp(baseNormal, mult));
-            
             const reducedIdx = Math.max(0, sizes.indexOf(state.clockSize) - 1);
             const baseReduced = isLand ? fontClamps[sizes[reducedIdx]].l : fontClamps[sizes[reducedIdx]].p;
             root.style.setProperty('--font-clamp-reduced', applyScaleToClamp(baseReduced, mult));
@@ -298,6 +309,7 @@
             } else { drawAnalogue(); }
         }
 
+        /** CONTINUOUS WEATHER SCALING **/
         function updateWeatherScaling(el, w, h) {
             const mult = scaleMap[state.contentScale];
             const scale = Math.min(w / 350, h / 280) * mult;
@@ -315,21 +327,14 @@
 
         function updateCalendarScaling(el, w, h) {
             const mult = scaleMap[state.contentScale];
-            let baseCellH = 36, baseHeadH = 24, baseCircle = 32;
-            if (w > 400) { baseCellH = 48; baseCircle = 40; }
-            else if (w < 280) { baseCellH = 20; baseHeadH = 16; baseCircle = 22; }
-
-            const grid = el.querySelector('#cal-grid');
-            if (!grid) return;
-            
-            // Apply scale multiplier inline
-            el.querySelectorAll('.day-cell').forEach(cell => cell.style.height = (baseCellH * mult) + 'px');
-            el.querySelectorAll('.day-header').forEach(head => head.style.height = (baseHeadH * mult) + 'px');
+            let bCH = 36, bHH = 24, bC = 32;
+            if (w > 400) { bCH = 48; bC = 40; } else if (w < 280) { bCH = 20; bHH = 16; bC = 22; }
+            el.querySelectorAll('.day-cell').forEach(c => c.style.height = (bCH * mult) + 'px');
+            el.querySelectorAll('.day-header').forEach(h => h.style.height = (bHH * mult) + 'px');
             const circle = el.querySelector('.today-circle');
-            if (circle) {
-                circle.style.width = circle.style.height = (baseCircle * mult) + 'px';
-            }
-            grid.style.fontSize = (0.9 * mult) + 'rem';
+            if (circle) circle.style.width = circle.style.height = (bC * mult) + 'px';
+            const grid = el.querySelector('#cal-grid');
+            if (grid) grid.style.fontSize = (0.9 * mult) + 'rem';
         }
 
         function initResizeObservers() {
@@ -348,15 +353,24 @@
             document.querySelectorAll('.widget').forEach(w => observer.observe(w));
         }
 
-        /** GRID DRAG **/
+        /** HARDENED TOUCH DIVIDER LOGIC **/
         function initGridInteraction() {
             const container = document.getElementById('app-container'), minPx = 150;
             const handleDrag = (divider, type) => {
                 const onMove = (e) => {
-                    const t = e.touches ? e.touches[0] : e, rect = container.getBoundingClientRect(), pad = 24, gap = 12;
-                    if (type === 'v') state.gridL.c = Math.max(minPx, Math.min(rect.width - minPx, t.clientX - rect.left - pad)) / (rect.width - pad * 2 - gap - Math.max(minPx, Math.min(rect.width - minPx, t.clientX - rect.left - pad)));
-                    else if (type === 'h-land') state.gridL.r = Math.max(minPx, Math.min(rect.height - minPx, t.clientY - rect.top - pad)) / (rect.height - pad * 2 - gap - Math.max(minPx, Math.min(rect.height - minPx, t.clientY - rect.top - pad)));
-                    else if (type === 'h-p1' || type === 'h-p2') {
+                    // Guard against empty touches
+                    if (e.touches && e.touches.length === 0) return;
+                    
+                    const t = e.touches ? e.touches[0] : e;
+                    const rect = container.getBoundingClientRect(), pad = 24, gap = 12;
+                    
+                    if (type === 'v') {
+                        const x = Math.max(minPx, Math.min(rect.width - minPx, t.clientX - rect.left - pad));
+                        state.gridL.c = x / (rect.width - pad * 2 - gap - x);
+                    } else if (type === 'h-land') {
+                        const y = Math.max(minPx, Math.min(rect.height - minPx, t.clientY - rect.top - pad));
+                        state.gridL.r = y / (rect.height - pad * 2 - gap - y);
+                    } else {
                         const h = rect.height - pad * 2 - gap * 2, y = t.clientY - rect.top - pad;
                         if (type === 'h-p1') {
                             const r1 = Math.max(minPx, Math.min(h - minPx * 2, y));
@@ -367,21 +381,36 @@
                         }
                     }
                     applyGrid();
+                    if (e.cancelable) e.preventDefault(); // Stop iPad scroll during drag
                 };
+
                 const onEnd = () => {
                     divider.classList.remove('dragging');
-                    window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onEnd);
-                    window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd);
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('mouseup', onEnd);
+                    window.removeEventListener('touchmove', onMove);
+                    window.removeEventListener('touchend', onEnd);
                     localStorage.setItem('standby_v22', JSON.stringify(state));
                 };
-                divider.onmousedown = divider.ontouchstart = (e) => {
-                    e.preventDefault(); divider.classList.add('dragging');
-                    window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onEnd);
-                    window.addEventListener('touchmove', onMove, { passive: false }); window.addEventListener('touchend', onEnd);
+
+                // Use non-passive listeners for touch to allow preventDefault()
+                const startFunc = (e) => {
+                    divider.classList.add('dragging');
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('mouseup', onEnd);
+                    window.addEventListener('touchmove', onMove, { passive: false });
+                    window.addEventListener('touchend', onEnd);
+                    if (e.cancelable) e.preventDefault();
                 };
+
+                divider.addEventListener('mousedown', startFunc);
+                divider.addEventListener('touchstart', startFunc, { passive: false });
             };
-            handleDrag(document.getElementById('div-v'), 'v'); handleDrag(document.getElementById('div-h-land'), 'h-land');
-            handleDrag(document.getElementById('div-h-port-1'), 'h-p1'); handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
+
+            handleDrag(document.getElementById('div-v'), 'v');
+            handleDrag(document.getElementById('div-h-land'), 'h-land');
+            handleDrag(document.getElementById('div-h-port-1'), 'h-p1');
+            handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
         }
 
         async function fetchWeather() {
@@ -411,20 +440,12 @@
                 const isToday = d === now.getDate();
                 grid.innerHTML += `<div class="day-cell">${isToday ? `<div class="today-circle">${d}</div>` : d}</div>`;
             }
-            const calWidget = document.getElementById('calendar-widget'), rect = calWidget.getBoundingClientRect();
-            updateCalendarScaling(calWidget, rect.width, rect.height);
+            const calX = document.getElementById('calendar-widget'), cr = calX.getBoundingClientRect();
+            updateCalendarScaling(calX, cr.width, cr.height);
         }
 
-        function trySaveWP(data) {
-            try {
-                const test = { ...state, wallpaper: data };
-                localStorage.setItem('standby_v22', JSON.stringify(test));
-                state.wallpaper = data;
-                document.getElementById('wallpaper-bg').style.backgroundImage = `url(${data})`;
-                const s = document.getElementById('wp-status'); s.textContent = "✓ Saved"; s.className = "status-success";
-                setTimeout(() => s.textContent = "", 2000);
-                return true;
-            } catch (e) { return false; }
+        function tryPersistToStorage(imageData) {
+            try { localStorage.setItem('standby_v22', JSON.stringify({ ...state, wallpaper: imageData })); return true; } catch (e) { return false; }
         }
 
         async function processWP(file) {
@@ -438,7 +459,17 @@
                         c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
                         return c.toDataURL('image/jpeg', q);
                     };
-                    if (!trySaveWP(run(1280, 0.75))) { if (!trySaveWP(run(1280, 0.5))) { if (!trySaveWP(run(800, 0.5))) alert("Image too large."); } }
+                    const a1 = run(1280, 0.75);
+                    state.wallpaper = a1; document.getElementById('wallpaper-bg').style.backgroundImage = `url(${a1})`;
+                    const s = document.getElementById('wp-status'); s.textContent = "✓ Saved"; s.className = "status-success";
+                    setTimeout(() => s.textContent = "", 2000);
+                    if (!tryPersistToStorage(a1)) {
+                        const a2 = run(1280, 0.5);
+                        if (!tryPersistToStorage(a2)) {
+                            const a3 = run(800, 0.5);
+                            if (tryPersistToStorage(a3)) state.wallpaper = a3;
+                        } else state.wallpaper = a2;
+                    }
                 };
                 img.src = ev.target.result;
             };
@@ -454,11 +485,9 @@
             document.getElementById('check-day').checked = state.showDay;
             document.getElementById('clock-size-slider').value = sizes.indexOf(state.clockSize);
             document.getElementById('content-scale-slider').value = scaleKeys.indexOf(state.contentScale);
-            
             applyGrid(); 
             const wx = document.getElementById('weather-widget'), wr = wx.getBoundingClientRect();
             updateWeatherScaling(wx, wr.width, wr.height);
-            
             updateActiveCards(); initResizeObservers(); updateCalendar(); fetchWeather(); 
             setInterval(fetchWeather, 600000); initGridInteraction(); getWakeLock(); 
             const t = () => { updateClock(); setTimeout(t, 1000 - (Date.now() % 1000)); }; t();
@@ -467,18 +496,18 @@
 
         window.addEventListener('orientationchange', () => {
             state.gridL = { c: 1, r: 1 }; state.gridP = { r1: 1, r2: 1, r3: 1 };
-            applyGrid(); updateClock();
-            localStorage.setItem('standby_v22', JSON.stringify(state));
+            applyGrid(); updateClock(); localStorage.setItem('standby_v22', JSON.stringify(state));
         });
 
         const modal = document.getElementById('settings-modal');
         document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
         document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
         modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-        document.getElementById('apply-btn').onclick = () => { localStorage.setItem('standby_v22', JSON.stringify(state)); modal.style.display = 'none'; };
-        document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); });
-        document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); };
-        
+        document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { 
+            state[card.dataset.key] = card.dataset.val; 
+            updateActiveCards(); updateClock(); localStorage.setItem('standby_v22', JSON.stringify(state));
+        });
+        document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); localStorage.setItem('standby_v22', JSON.stringify(state)); };
         document.getElementById('content-scale-slider').oninput = (e) => { 
             state.contentScale = scaleKeys[e.target.value]; 
             updateClock(); 
@@ -486,9 +515,9 @@
             updateWeatherScaling(wx, wr.width, wr.height);
             const cx = document.getElementById('calendar-widget'), cr = cx.getBoundingClientRect();
             updateCalendarScaling(cx, cr.width, cr.height);
+            localStorage.setItem('standby_v22', JSON.stringify(state));
         };
-
-        ['seconds', 'date', 'day'].forEach(k => document.getElementById(`check-${k}`).onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); });
+        ['seconds', 'date', 'day'].forEach(k => document.getElementById(`check-${k}`).onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); localStorage.setItem('standby_v22', JSON.stringify(state)); });
         document.getElementById('wp-input').onchange = (e) => { if (e.target.files[0]) processWP(e.target.files[0]); };
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
