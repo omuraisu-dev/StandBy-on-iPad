@@ -28,13 +28,9 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: #fff; }
 
-        #wallpaper-bg { 
-            position: fixed; inset: 0; 
-            background-size: cover; background-position: center; 
-            background-color: transparent; z-index: -2; 
-            transition: background-image 0.8s cubic-bezier(0.4, 0, 0.2, 1); 
-        }
-        #dark-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: -1; }
+        #wallpaper-bg { position: fixed; inset: 0; background-size: cover; background-position: center; background-color: transparent; z-index: -2; transition: background-image 0.8s ease; }
+        #aurora-canvas { position: fixed; inset: 0; z-index: -2; background: #000; display: none; }
+        #dark-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: -1; pointer-events: none; }
 
         #app-container { display: grid; width: 100vw; height: 100vh; padding: var(--padding-edge); }
 
@@ -59,10 +55,8 @@
         .divider { display: flex; align-items: center; justify-content: center; background: transparent; position: relative; z-index: 10; touch-action: none; }
         .divider::after { content: ''; background: #fff; border-radius: 10px; transition: all 0.2s; opacity: 0.25; }
         .divider:hover::after, .divider.dragging::after { background: var(--ios-blue); box-shadow: 0 0 12px var(--ios-blue); opacity: 1; }
-        .divider.v { cursor: col-resize; width: var(--gap); } 
-        .divider.v::after { width: 4px; height: 40px; }
-        .divider.h { cursor: row-resize; height: var(--gap); } 
-        .divider.h::after { width: 40px; height: 4px; }
+        .divider.v { cursor: col-resize; width: var(--gap); } .divider.v::after { width: 4px; height: 40px; }
+        .divider.h { cursor: row-resize; height: var(--gap); } .divider.h::after { width: 40px; height: 4px; }
 
         .widget {
             background: var(--glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
@@ -76,12 +70,8 @@
         
         #clock-widget.h-lt-200 .date-info { display: none !important; }
         #clock-widget.h-lt-200 .digital-time, #clock-widget.w-lt-250 .digital-time { font-size: var(--font-clamp-reduced) !important; }
-        #clock-widget.gt-400 .date-info { margin-top: calc(24px * var(--content-scale-mult)); font-weight: 400; }
-
-        #weather-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 5px; }
-        #temp { font-size: 3.5rem; font-weight: 300; line-height: 1; }
-        #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
-        #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
+        #clock-widget.w-lt-250 .digital-seconds { display: none !important; }
+        #clock-widget.gt-400 .date-info { margin-top: calc(16px * var(--content-scale-mult)); font-weight: 400; opacity: 0.8; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 95%; text-align: center; font-size: 0.9rem; }
         .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; }
@@ -103,6 +93,11 @@
         .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .preview-card { background: #2c2c2e; border: 2px solid transparent; border-radius: 14px; padding: 14px; text-align: center; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
         .preview-card.active { border-color: var(--ios-blue); background: #3a3a3c; }
+
+        .theme-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 15px; }
+        .theme-circle { width: 42px; height: 42px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: 0.2s; }
+        .theme-circle.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
         .toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #38383a; }
         .switch { position: relative; width: 48px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
@@ -110,14 +105,17 @@
         .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
         input:checked + .slider-toggle { background-color: #34c759; }
         input:checked + .slider-toggle:before { transform: translateX(22px); }
-        
-        #art-btn { width: 100%; padding: 16px; border-radius: 14px; background: #2c2c2e; border: 1px solid #38383a; color: #fff; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.2s; }
-        #art-btn:active { transform: scale(0.98); background: #3a3a3c; }
+
+        #wp-status { display: block; margin-top: 8px; font-size: 0.85rem; height: 1.2rem; }
+        .status-success { color: #34c759; font-weight: 600; }
+        #art-btn, #aurora-toggle { width: 100%; padding: 12px; border-radius: 12px; background: #2c2c2e; border: 1px solid #38383a; color: #fff; font-weight: 600; cursor: pointer; margin-top: 10px; }
+        #aurora-toggle.active { background: var(--ios-blue); border-color: var(--ios-blue); }
     </style>
 </head>
 <body>
 
     <div id="wallpaper-bg"></div>
+    <canvas id="aurora-canvas"></canvas>
     <div id="dark-overlay"></div>
 
     <div id="app-container">
@@ -147,7 +145,17 @@
             
             <div class="setting-section">
                 <h3>Wallpaper</h3>
-                <button id="art-btn">🔄 Load Random Masterpiece</button>
+                <button id="aurora-toggle">🌌 Aurora Live Wallpaper</button>
+                <div id="aurora-theme-section" style="display:none; margin-top:15px;">
+                    <p style="font-size:0.7rem; color:#8e8e93; text-transform:uppercase; margin-bottom:10px;">Aurora Theme</p>
+                    <div class="theme-grid" id="theme-grid"></div>
+                </div>
+                <div id="image-upload-section" style="margin-top:20px;">
+                    <p id="aurora-note" style="display:none; font-size:0.7rem; color:var(--ios-blue); margin-bottom:8px;">Aurora active — load image to switch</p>
+                    <input type="file" id="wp-input" accept="image/*" style="width:100%; color:white; font-size: 0.8rem; margin-bottom: 10px;">
+                    <button id="art-btn">🎨 Load Random Masterpiece</button>
+                    <span id="wp-status"></span>
+                </div>
             </div>
 
             <div class="setting-section">
@@ -204,6 +212,7 @@
                 <div class="toggle-item"><span>Date</span><label class="switch"><input type="checkbox" id="check-date"><span class="slider-toggle"></span></label></div>
                 <div class="toggle-item"><span>Day</span><label class="switch"><input type="checkbox" id="check-day"><span class="slider-toggle"></span></label></div>
             </div>
+            <p style="text-align:center; color:#8e8e93; font-size:0.7rem; margin-top:20px; opacity:0.5;">Settings save automatically.</p>
         </div>
     </div>
 
@@ -214,9 +223,23 @@
         const scaleMap = { compact: 0.6, small: 0.8, normal: 1.0, large: 1.2, fill: 1.4 };
         const canvasSizeMap = { xs: 0.6, small: 0.8, medium: 1.0, large: 1.2, xl: 1.5 };
 
+        const auroraThemes = [
+            { name: "Northern Lights", colors: ['#00ffd5', '#1de9b6', '#2979ff', '#651fff'] },
+            { name: "Sunset", colors: ['#ff6d00', '#f50057', '#ff1744', '#d500f9'] },
+            { name: "Ocean Deep", colors: ['#01579b', '#00bcd4', '#006064', '#0d47a1'] },
+            { name: "Galaxy", colors: ['#4a148c', '#7b1fa2', '#c51162', '#1a237e'] },
+            { name: "Forest", colors: ['#1b5e20', '#c6ff00', '#00695c', '#558b2f'] },
+            { name: "Fire", colors: ['#ff3d00', '#ff9100', '#ffea00', '#b71c1c'] },
+            { name: "Cotton Candy", colors: ['#f06292', '#b388ff', '#81d4fa', '#ce93d8'] },
+            { name: "Midnight", colors: ['#1a237e', '#0d47a1', '#000000', '#455a64'] },
+            { name: "Rose Gold", colors: ['#e91e63', '#ffc107', '#ff8a65', '#f8bbd0'] },
+            { name: "Monochrome", colors: ['#ffffff', '#e0e0e0', '#9e9e9e', '#696969'] }
+        ];
+
         let state = {
             clockStyle: 'digital', font: 'Inter', face: 'classic', clockSize: 'medium', contentScale: 'normal',
             showSeconds: true, showDate: true, showDay: true, wallpaper: null,
+            wallpaperMode: 'image', auroraTheme: 0,
             gridL: { c: 1, r: 1 }, gridP: { r1: 1, r2: 1, r3: 1 }
         };
 
@@ -230,11 +253,59 @@
             xl:     { l: 'clamp(5rem, 18vw, 16rem)',   p: 'clamp(7rem, 28vw, 20rem)' }
         };
 
-        const persist = () => localStorage.setItem('standby_v24', JSON.stringify(state));
+        const persist = () => localStorage.setItem('standby_v27', JSON.stringify(state));
         const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
         const applyScaleToClamp = (c, m) => c.replace(/(\d*\.?\d+)(rem|px)/g, (match, n, u) => (parseFloat(n) * m).toFixed(2) + u);
 
-        /** GRID ENGINE **/
+        /** AURORA ENGINE **/
+        let auroraCanvas, aCtx, auroraReq;
+        let blobs = [];
+
+        function initAurora() {
+            auroraCanvas = document.getElementById('aurora-canvas');
+            aCtx = auroraCanvas.getContext('2d');
+            window.addEventListener('resize', resizeAurora);
+            resizeAurora();
+            blobs = [];
+            for(let i=0; i<5; i++) {
+                blobs.push({ x: Math.random() * 2000, y: Math.random() * 2000, r: Math.random() * 300 + 300, phase: Math.random() * Math.PI * 2, speed: 0.0004 + Math.random() * 0.0006 });
+            }
+        }
+
+        function resizeAurora() { if(!auroraCanvas) return; auroraCanvas.width = window.innerWidth; auroraCanvas.height = window.innerHeight; }
+
+        function animateAurora() {
+            if (state.wallpaperMode !== 'aurora') return;
+            const w = auroraCanvas.width, h = auroraCanvas.height, time = Date.now(), theme = auroraThemes[state.auroraTheme].colors;
+            aCtx.fillStyle = '#000';
+            aCtx.fillRect(0, 0, w, h);
+            blobs.forEach((b, i) => {
+                const color = theme[i % theme.length];
+                const driftX = Math.sin(time * b.speed + b.phase) * (w * 0.3);
+                const driftY = Math.cos(time * b.speed * 0.8 + b.phase) * (h * 0.3);
+                const curX = (b.x % w) + driftX;
+                const curY = (b.y % h) + driftY;
+                const grad = aCtx.createRadialGradient(curX, curY, 0, curX, curY, b.r);
+                grad.addColorStop(0, color); grad.addColorStop(1, 'transparent');
+                aCtx.globalAlpha = 0.45; aCtx.fillStyle = grad; aCtx.beginPath(); aCtx.arc(curX, curY, b.r, 0, Math.PI * 2); aCtx.fill();
+            });
+            auroraReq = requestAnimationFrame(animateAurora);
+        }
+
+        function toggleWallpaperMode(mode) {
+            state.wallpaperMode = mode;
+            const bg = document.getElementById('wallpaper-bg'), canvas = document.getElementById('aurora-canvas');
+            if (mode === 'aurora') {
+                bg.style.display = 'none'; canvas.style.display = 'block';
+                if (!auroraReq) animateAurora();
+            } else {
+                bg.style.display = 'block'; canvas.style.display = 'none';
+                cancelAnimationFrame(auroraReq); auroraReq = null;
+            }
+            updateActiveCards(); persist();
+        }
+
+        /** GRID & CLOCK RENDERING **/
         function applyGrid() {
             const container = document.getElementById('app-container');
             const isLand = window.matchMedia("(orientation: landscape)").matches;
@@ -247,24 +318,18 @@
             }
         }
 
-        /** CLOCK RENDERING **/
         let clockCanvas, ctx;
         function drawAnalogue() {
             if (state.clockStyle !== 'analogue' && state.clockStyle !== 'square') return;
             const content = document.getElementById('clock-content');
             if (!clockCanvas) { clockCanvas = document.createElement('canvas'); ctx = clockCanvas.getContext('2d'); }
             if (!content.contains(clockCanvas)) { content.innerHTML = ''; content.appendChild(clockCanvas); }
-            
             const rect = content.getBoundingClientRect(), dpr = window.devicePixelRatio;
-            const mult = scaleMap[state.contentScale] * canvasSizeMap[state.clockSize];
+            const sizeMult = canvasSizeMap[state.clockSize];
             clockCanvas.width = rect.width * dpr; clockCanvas.height = rect.height * dpr;
-            
-            const w = clockCanvas.width, h = clockCanvas.height;
-            const radius = (Math.min(w, h) / 2) * 0.82 * mult;
-            ctx.clearRect(0, 0, w, h); ctx.save(); ctx.translate(w / 2, h / 2); ctx.lineCap = 'round';
-            
+            const radius = (Math.min(clockCanvas.width, clockCanvas.height) / 2) * 0.82 * sizeMult;
+            ctx.clearRect(0, 0, clockCanvas.width, clockCanvas.height); ctx.save(); ctx.translate(clockCanvas.width / 2, clockCanvas.height / 2); ctx.lineCap = 'round';
             const now = new Date(), hrs = now.getHours() % 12, mins = now.getMinutes(), secs = now.getSeconds();
-
             if (state.clockStyle === 'analogue') {
                 ctx.save();
                 if (state.face === 'outlined') {
@@ -277,50 +342,39 @@
                 }
                 ctx.restore();
             } else {
-                // Modern Square Analogue
                 ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 3 * dpr;
-                const r = 16 * dpr; 
-                ctx.beginPath();
+                const r = 16 * dpr; ctx.beginPath();
                 ctx.moveTo(-radius + r, -radius); ctx.lineTo(radius - r, -radius); ctx.quadraticCurveTo(radius, -radius, radius, -radius + r);
                 ctx.lineTo(radius, radius - r); ctx.quadraticCurveTo(radius, radius, radius - r, radius);
                 ctx.lineTo(-radius + r, radius); ctx.quadraticCurveTo(-radius, radius, -radius, radius - r);
                 ctx.lineTo(-radius, -radius + r); ctx.quadraticCurveTo(-radius, -radius, -radius + r, -radius);
                 ctx.stroke();
-                
                 for (let i = 0; i < 60; i++) {
                     const angle = (i * Math.PI / 30);
                     const dist = radius / Math.max(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle)));
                     const len = i % 5 === 0 ? 18 * dpr : 8 * dpr;
-                    ctx.beginPath();
-                    ctx.moveTo(Math.sin(angle) * dist, -Math.cos(angle) * dist);
-                    ctx.lineTo(Math.sin(angle) * (dist - len), -Math.cos(angle) * (dist - len));
-                    ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)';
-                    ctx.lineWidth = 2 * dpr; ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(Math.sin(angle) * dist, -Math.cos(angle) * dist); ctx.lineTo(Math.sin(angle) * (dist - len), -Math.cos(angle) * (dist - len));
+                    ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2 * dpr; ctx.stroke();
                 }
             }
-
             const hL = radius * 0.5, mL = radius * 0.85, sL = radius * 0.95;
             const hand = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
             hand((hrs * Math.PI / 6) + (mins * Math.PI / 360), hL, 7 * dpr, '#fff');
             hand((mins * Math.PI / 30) + (secs * Math.PI / 1800), mL, 4.5 * dpr, '#fff');
-            if (state.showSeconds) hand(secs * Math.PI / 30, sL, 2 * dpr, (state.clockStyle === 'square') ? '#fff' : (state.face === 'outlined' ? '#fff' : '#ff3b30'));
+            if (state.showSeconds) hand(secs * Math.PI / 30, sL, 2 * dpr, (state.clockStyle === 'square' || state.face === 'outlined') ? '#fff' : '#ff3b30');
             ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
         }
 
         function updateClock() {
             const isLand = window.matchMedia("(orientation: landscape)").matches;
-            const root = document.documentElement;
             const mult = scaleMap[state.contentScale];
-            root.style.setProperty('--content-scale-mult', mult);
-
-            const baseNormal = isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p;
-            root.style.setProperty('--font-clamp-normal', applyScaleToClamp(baseNormal, mult));
-            const redIdx = Math.max(0, sizes.indexOf(state.clockSize) - 1);
-            const baseRed = isLand ? fontClamps[sizes[redIdx]].l : fontClamps[sizes[redIdx]].p;
-            root.style.setProperty('--font-clamp-reduced', applyScaleToClamp(baseRed, mult));
-
+            document.documentElement.style.setProperty('--content-scale-mult', mult);
             const container = document.getElementById('clock-content');
             if (state.clockStyle === 'digital') {
+                const bN = isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p;
+                document.documentElement.style.setProperty('--font-clamp-normal', applyScaleToClamp(bN, mult));
+                const bR = isLand ? fontClamps[sizes[Math.max(0, sizes.indexOf(state.clockSize)-1)]].l : fontClamps[sizes[Math.max(0, sizes.indexOf(state.clockSize)-1)]].p;
+                document.documentElement.style.setProperty('--font-clamp-reduced', applyScaleToClamp(bR, mult));
                 const now = new Date();
                 const s = state.showSeconds ? `<span class="digital-seconds" style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
                 container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>` +
@@ -328,7 +382,7 @@
             } else { drawAnalogue(); }
         }
 
-        /** WEATHER & CALENDAR **/
+        /** WEATHER & SCALING **/
         function updateWeatherScaling(el, w, h) {
             const m = scaleMap[state.contentScale];
             const s = Math.min(w / 350, h / 280) * m;
@@ -338,7 +392,7 @@
             icon.style.marginBottom = `clamp(2px, ${8 * s}px, 16px)`;
             temp.style.fontSize = `clamp(1.2rem, ${3.5 * s}rem, 7rem)`;
             cond.style.fontSize = `clamp(0.6rem, ${1.2 * s}rem, 2rem)`;
-            cond.style.marginBottom = `clamp(2px, ${8 * s}px, 16px)`;
+            cond.style.marginBottom = `clamp(2px, ${8 * s}px, 16px)`; // Fixed 'scale' to 's'
             loc.style.fontSize = `clamp(0.5rem, ${0.85 * s}rem, 1.4rem)`;
             loc.style.display = s < 0.5 ? 'none' : 'block';
             cond.style.display = s < 0.35 ? 'none' : 'block';
@@ -350,15 +404,15 @@
                 const { latitude: lat, longitude: lon } = pos.coords;
                 try {
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-                    const d = await res.json(), code = d.current_weather.weathercode;
+                    const d = await res.json();
                     document.getElementById('temp').textContent = Math.round(d.current_weather.temperature) + '°';
-                    document.getElementById('condition').textContent = weatherTexts[code] || "Clear Sky";
-                    document.getElementById('weather-icon').textContent = weatherIconMap[code] || '☀️';
+                    document.getElementById('condition').textContent = weatherTexts[d.current_weather.weathercode] || "Cloudy";
+                    document.getElementById('weather-icon').textContent = weatherIconMap[d.current_weather.weathercode] || '☀️';
                     const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&email=standby@app.local`);
                     const g = await geoRes.json();
                     document.getElementById('location').textContent = `📍 ${g.address.city || g.address.town || "Nearby"}`;
                 } catch (e) {}
-            }, () => { document.getElementById('condition').textContent = "Location Denied"; document.getElementById('weather-icon').textContent = "🌡️"; });
+            }, () => { document.getElementById('condition').textContent = "Denied"; });
         }
 
         function updateCalendar() {
@@ -373,44 +427,82 @@
             }
         }
 
-        /** WALLPAPER **/
-        function loadRandomArt() {
-            const url = `https://picsum.photos/1920/1080?random=${Date.now()}`;
-            state.wallpaper = url;
-            document.getElementById('wallpaper-bg').style.backgroundImage = `url(${url})`;
-            persist();
+        /** WALLPAPER PERSISTENCE **/
+        function tryPersistToStorage(data) {
+            try { localStorage.setItem('standby_v27', JSON.stringify({ ...state, wallpaper: data })); return true; } catch (e) { return false; }
         }
 
-        /** INITIALIZATION **/
+        async function processWP(imgSrc) {
+            const img = new Image(); img.crossOrigin = "anonymous";
+            img.onload = () => {
+                const run = (mW, q) => {
+                    const c = document.createElement('canvas'); let w = img.width, h = img.height;
+                    if (w > mW) { h *= mW/w; w = mW; }
+                    c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+                    return c.toDataURL('image/jpeg', q);
+                };
+                const a1 = run(1280, 0.75);
+                state.wallpaper = a1; toggleWallpaperMode('image');
+                document.getElementById('wallpaper-bg').style.backgroundImage = `url(${a1})`;
+                const s = document.getElementById('wp-status'); s.innerHTML = '<span class="status-success">✓ Saved</span>';
+                setTimeout(() => s.innerHTML = '', 2000);
+                if (!tryPersistToStorage(a1)) {
+                    const a2 = run(1280, 0.5);
+                    if (!tryPersistToStorage(a2)) {
+                        const a3 = run(800, 0.5);
+                        if (tryPersistToStorage(a3)) state.wallpaper = a3;
+                    } else state.wallpaper = a2;
+                }
+            };
+            img.src = imgSrc;
+        }
+
+        async function loadRandomArt() {
+            try {
+                const res = await fetch(`https://picsum.photos/1920/1080?random=${Date.now()}`);
+                const blob = await res.blob();
+                const r = new FileReader(); r.onloadend = () => processWP(r.result); r.readAsDataURL(blob);
+            } catch (e) {}
+        }
+
+        /** INIT **/
         function init() {
-            // Clean legacy
-            ['standby_v23','standby_v22','standby_v21'].forEach(k => localStorage.removeItem(k));
-            const saved = localStorage.getItem('standby_v24');
+            ['standby_v26','standby_v25','standby_v24'].forEach(k => localStorage.removeItem(k));
+            const saved = localStorage.getItem('standby_v27');
             if (saved) state = { ...state, ...JSON.parse(saved) };
             
-            requestAnimationFrame(() => {
-                if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
+            initAurora();
+            if(state.wallpaperMode === 'aurora') toggleWallpaperMode('aurora');
+            else if (state.wallpaper) requestAnimationFrame(() => document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`);
+
+            const themeGrid = document.getElementById('theme-grid');
+            auroraThemes.forEach((t, i) => {
+                const c = document.createElement('div');
+                c.className = 'theme-circle';
+                c.style.background = `radial-gradient(circle, ${t.colors[0]} 0%, ${t.colors[1]} 100%)`;
+                c.onclick = () => { state.auroraTheme = i; updateActiveCards(); persist(); };
+                themeGrid.appendChild(c);
             });
 
-            // Setup listeners
+            applyGrid(); updateActiveCards(); updateCalendar(); fetchWeather();
+            setInterval(fetchWeather, 600000);
+            
+            const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); }; tick();
+            const dateTick = () => { const now = new Date(), tm = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); setTimeout(() => { updateCalendar(); updateClock(); dateTick(); }, tm - now); }; dateTick();
+
             const modal = document.getElementById('settings-modal');
             document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
             document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
             modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
             document.getElementById('art-btn').onclick = loadRandomArt;
-
-            document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { 
-                state[card.dataset.key] = card.dataset.val; 
-                updateActiveCards(); updateClock(); persist();
-            });
-
-            document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); persist(); };
-            document.getElementById('content-scale-slider').oninput = (e) => { 
-                state.contentScale = scaleKeys[e.target.value]; updateClock(); 
-                const wr = document.getElementById('weather-widget').getBoundingClientRect();
-                updateWeatherScaling(document.getElementById('weather-widget'), wr.width, wr.height);
-                updateCalendar(); persist();
+            document.getElementById('aurora-toggle').onclick = () => toggleWallpaperMode(state.wallpaperMode === 'aurora' ? 'image' : 'aurora');
+            document.getElementById('wp-input').onchange = (e) => {
+                if (e.target.files[0]) { const r = new FileReader(); r.onload = (ev) => processWP(ev.target.result); r.readAsDataURL(e.target.files[0]); }
             };
+
+            document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); persist(); });
+            document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); persist(); };
+            document.getElementById('content-scale-slider').oninput = (e) => { state.contentScale = scaleKeys[e.target.value]; updateClock(); persist(); };
 
             ['seconds', 'date', 'day'].forEach(k => {
                 const el = document.getElementById(`check-${k}`);
@@ -418,25 +510,19 @@
                 el.onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); persist(); };
             });
 
-            // Grid
             const container = document.getElementById('app-container'), minPx = 150;
             const handleDrag = (div, type) => {
                 const onMove = (e) => {
+                    if (e.touches && e.touches.length === 0) return;
                     const t = e.touches ? e.touches[0] : e, r = container.getBoundingClientRect(), p = 24, g = 20;
-                    if (type === 'v') state.gridL.c = Math.max(minPx, Math.min(r.width - p * 2 - g - minPx, t.clientX - r.left - p)) / (r.width - p * 2 - g - Math.max(minPx, Math.min(r.width - p * 2 - g - minPx, t.clientX - r.left - p)));
-                    else if (type === 'h-land') state.gridL.r = Math.max(minPx, Math.min(r.height - p * 2 - g - minPx, t.clientY - r.top - p)) / (r.height - p * 2 - g - Math.max(minPx, Math.min(r.height - p * 2 - g - minPx, t.clientY - r.top - p)));
+                    if (type === 'v') state.gridL.c = Math.max(minPx, Math.min(r.width - p*2 - g - minPx, t.clientX - r.left - p)) / (r.width - p*2 - g - Math.max(minPx, Math.min(r.width - p*2 - g - minPx, t.clientX - r.left - p)));
+                    else if (type === 'h-land') state.gridL.r = Math.max(minPx, Math.min(r.height - p*2 - g - minPx, t.clientY - r.top - p)) / (r.height - p*2 - g - Math.max(minPx, Math.min(r.height - p*2 - g - minPx, t.clientY - r.top - p)));
                     else {
-                        const h = r.height - p * 2 - g * 2, y = t.clientY - r.top - p;
-                        if (type === 'h-p1') {
-                            const r1 = Math.max(minPx, Math.min(h - minPx * 2, y));
-                            state.gridP.r1 = r1 / (h/3); state.gridP.r2 = ((h - r1) / 2) / (h/3); state.gridP.r3 = state.gridP.r2;
-                        } else {
-                            const r1Px = state.gridP.r1 * (h/3), r2 = Math.max(minPx, Math.min(h - r1Px - minPx, y - r1Px - g));
-                            state.gridP.r2 = r2 / (h/3); state.gridP.r3 = (h - r1Px - r2) / (h/3);
-                        }
+                        const h = r.height - p*2 - g*2, y = t.clientY - r.top - p;
+                        if (type === 'h-p1') { const r1 = Math.max(minPx, Math.min(h - 300, y)); state.gridP.r1 = r1 / (h/3); state.gridP.r2 = ((h - r1) / 2) / (h/3); state.gridP.r3 = state.gridP.r2; }
+                        else { const r1Px = state.gridP.r1 * (h/3), r2 = Math.max(minPx, Math.min(h - r1Px - minPx, y - r1Px - g)); state.gridP.r2 = r2 / (h/3); state.gridP.r3 = (h - r1Px - r2) / (h/3); }
                     }
-                    applyGrid();
-                    if (e.cancelable) e.preventDefault();
+                    applyGrid(); if (e.cancelable) e.preventDefault();
                 };
                 const onEnd = () => { div.classList.remove('dragging'); window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onEnd); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); persist(); };
                 const start = (e) => { div.classList.add('dragging'); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onEnd); window.addEventListener('touchmove', onMove, { passive: false }); window.addEventListener('touchend', onEnd); if (e.cancelable) e.preventDefault(); };
@@ -445,49 +531,30 @@
             handleDrag(document.getElementById('div-v'), 'v'); handleDrag(document.getElementById('div-h-land'), 'h-land');
             handleDrag(document.getElementById('div-h-port-1'), 'h-p1'); handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
 
-            // Final View Init
-            applyGrid();
-            updateActiveCards();
-            new ResizeObserver(debounce((entries) => {
-                for (let entry of entries) {
-                    const { width: w, height: h } = entry.contentRect, el = entry.target;
-                    if (el.id === 'weather-widget') updateWeatherScaling(el, w, h);
-                    else if (el.id === 'clock-widget') {
-                        el.classList.toggle('h-lt-200', h < 200); el.classList.toggle('w-lt-250', w < 250);
-                        el.classList.toggle('gt-400', h > 400 && w > 400);
+            new ResizeObserver(debounce((es) => {
+                for (let e of es) {
+                    const { width: w, height: h } = e.contentRect, el = e.target;
+                    if (el.id === 'clock-widget') {
+                        el.classList.toggle('h-lt-200', h < 200); el.classList.toggle('w-lt-250', w < 250); el.classList.toggle('gt-400', h > 400 && w > 400);
                         if (state.clockStyle !== 'digital') drawAnalogue();
-                    }
+                    } else if (el.id === 'weather-widget') updateWeatherScaling(el, w, h);
+                    else if (el.id === 'calendar-widget') { el.classList.toggle('h-lt-220', h < 220); el.classList.toggle('h-lt-150', h < 150); }
                 }
             }, 50)).observe(document.getElementById('clock-widget'));
-            
-            document.querySelectorAll('.widget').forEach(w => {
-                if(w.id !== 'clock-widget') new ResizeObserver(debounce((entries) => {
-                    for(let entry of entries) {
-                        const { width: w, height: h } = entry.contentRect;
-                        if(entry.target.id === 'weather-widget') updateWeatherScaling(entry.target, w, h);
-                    }
-                }, 50)).observe(w);
-            });
-
-            updateCalendar(); fetchWeather(); startPrecisionClock();
-            setInterval(fetchWeather, 600000);
-            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
+            document.querySelectorAll('.widget').forEach(w => { if(w.id !== 'clock-widget') new ResizeObserver(debounce((es) => { for(let e of es) if(e.target.id === 'weather-widget') updateWeatherScaling(e.target, e.contentRect.width, e.contentRect.height); }, 50)).observe(w); });
+            if (navigator.wakeLock) getWakeLock();
         }
 
-        function startPrecisionClock() {
-            const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); };
-            tick();
-        }
-
-        window.addEventListener('orientationchange', () => {
-            state.gridL = { c: 1, r: 1 }; state.gridP = { r1: 1, r2: 1, r3: 1 };
-            applyGrid(); updateClock(); persist();
-        });
+        window.addEventListener('orientationchange', () => { state.gridL = { c: 1, r: 1 }; state.gridP = { r1: 1, r2: 1, r3: 1 }; applyGrid(); updateClock(); persist(); });
 
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
-            const showSize = (state.clockStyle === 'digital' || state.clockStyle === 'square');
-            document.getElementById('size-options-container').style.display = showSize ? 'block' : 'none';
+            document.querySelectorAll('.theme-circle').forEach((c, i) => c.classList.toggle('active', state.auroraTheme === i));
+            const isAurora = state.wallpaperMode === 'aurora';
+            document.getElementById('aurora-toggle').classList.toggle('active', isAurora);
+            document.getElementById('aurora-theme-section').style.display = isAurora ? 'block' : 'none';
+            document.getElementById('aurora-note').style.display = isAurora ? 'block' : 'none';
+            document.getElementById('size-options-container').style.display = 'block';
             document.getElementById('digital-options').style.display = (state.clockStyle === 'digital') ? 'block' : 'none';
             document.getElementById('analogue-faces').style.display = (state.clockStyle === 'analogue') ? 'block' : 'none';
             document.getElementById('clock-size-slider').value = sizes.indexOf(state.clockSize);
