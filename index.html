@@ -28,8 +28,8 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: #fff; }
 
-        #wallpaper-bg { position: fixed; inset: 0; background-size: cover; background-position: center; background-color: transparent; z-index: -2; transition: background-image 0.8s ease; }
-        #aurora-canvas { position: fixed; inset: 0; z-index: -2; background: #000; display: none; }
+        /* Background Layers */
+        #aurora-canvas { position: fixed; inset: 0; z-index: -2; background: #000; display: block; }
         #dark-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: -1; pointer-events: none; }
 
         #app-container { display: grid; width: 100vw; height: 100vh; padding: var(--padding-edge); }
@@ -71,7 +71,12 @@
         #clock-widget.h-lt-200 .date-info { display: none !important; }
         #clock-widget.h-lt-200 .digital-time, #clock-widget.w-lt-250 .digital-time { font-size: var(--font-clamp-reduced) !important; }
         #clock-widget.w-lt-250 .digital-seconds { display: none !important; }
-        #clock-widget.gt-400 .date-info { margin-top: calc(16px * var(--content-scale-mult)); font-weight: 400; opacity: 0.8; }
+        #clock-widget.gt-400 .date-info { margin-top: 16px; font-weight: 400; opacity: 0.8; }
+
+        #weather-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 5px; }
+        #temp { font-size: 3.5rem; font-weight: 300; line-height: 1; }
+        #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
+        #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 95%; text-align: center; font-size: 0.9rem; }
         .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; }
@@ -105,16 +110,10 @@
         .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
         input:checked + .slider-toggle { background-color: #34c759; }
         input:checked + .slider-toggle:before { transform: translateX(22px); }
-
-        #wp-status { display: block; margin-top: 8px; font-size: 0.85rem; height: 1.2rem; }
-        .status-success { color: #34c759; font-weight: 600; }
-        #art-btn, #aurora-toggle { width: 100%; padding: 12px; border-radius: 12px; background: #2c2c2e; border: 1px solid #38383a; color: #fff; font-weight: 600; cursor: pointer; margin-top: 10px; }
-        #aurora-toggle.active { background: var(--ios-blue); border-color: var(--ios-blue); }
     </style>
 </head>
 <body>
 
-    <div id="wallpaper-bg"></div>
     <canvas id="aurora-canvas"></canvas>
     <div id="dark-overlay"></div>
 
@@ -144,18 +143,8 @@
             <h2 style="margin-top:0">Settings</h2>
             
             <div class="setting-section">
-                <h3>Wallpaper</h3>
-                <button id="aurora-toggle">🌌 Aurora Live Wallpaper</button>
-                <div id="aurora-theme-section" style="display:none; margin-top:15px;">
-                    <p style="font-size:0.7rem; color:#8e8e93; text-transform:uppercase; margin-bottom:10px;">Aurora Theme</p>
-                    <div class="theme-grid" id="theme-grid"></div>
-                </div>
-                <div id="image-upload-section" style="margin-top:20px;">
-                    <p id="aurora-note" style="display:none; font-size:0.7rem; color:var(--ios-blue); margin-bottom:8px;">Aurora active — load image to switch</p>
-                    <input type="file" id="wp-input" accept="image/*" style="width:100%; color:white; font-size: 0.8rem; margin-bottom: 10px;">
-                    <button id="art-btn">🎨 Load Random Masterpiece</button>
-                    <span id="wp-status"></span>
-                </div>
+                <h3>🌌 Live Aurora Background</h3>
+                <div class="theme-grid" id="theme-grid"></div>
             </div>
 
             <div class="setting-section">
@@ -238,8 +227,7 @@
 
         let state = {
             clockStyle: 'digital', font: 'Inter', face: 'classic', clockSize: 'medium', contentScale: 'normal',
-            showSeconds: true, showDate: true, showDay: true, wallpaper: null,
-            wallpaperMode: 'image', auroraTheme: 0,
+            showSeconds: true, showDate: true, showDay: true, auroraTheme: 0,
             gridL: { c: 1, r: 1 }, gridP: { r1: 1, r2: 1, r3: 1 }
         };
 
@@ -255,7 +243,6 @@
 
         const persist = () => localStorage.setItem('standby_v27', JSON.stringify(state));
         const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-        const applyScaleToClamp = (c, m) => c.replace(/(\d*\.?\d+)(rem|px)/g, (match, n, u) => (parseFloat(n) * m).toFixed(2) + u);
 
         /** AURORA ENGINE **/
         let auroraCanvas, aCtx, auroraReq;
@@ -270,12 +257,12 @@
             for(let i=0; i<5; i++) {
                 blobs.push({ x: Math.random() * 2000, y: Math.random() * 2000, r: Math.random() * 300 + 300, phase: Math.random() * Math.PI * 2, speed: 0.0004 + Math.random() * 0.0006 });
             }
+            animateAurora();
         }
 
         function resizeAurora() { if(!auroraCanvas) return; auroraCanvas.width = window.innerWidth; auroraCanvas.height = window.innerHeight; }
 
         function animateAurora() {
-            if (state.wallpaperMode !== 'aurora') return;
             const w = auroraCanvas.width, h = auroraCanvas.height, time = Date.now(), theme = auroraThemes[state.auroraTheme].colors;
             aCtx.fillStyle = '#000';
             aCtx.fillRect(0, 0, w, h);
@@ -290,19 +277,6 @@
                 aCtx.globalAlpha = 0.45; aCtx.fillStyle = grad; aCtx.beginPath(); aCtx.arc(curX, curY, b.r, 0, Math.PI * 2); aCtx.fill();
             });
             auroraReq = requestAnimationFrame(animateAurora);
-        }
-
-        function toggleWallpaperMode(mode) {
-            state.wallpaperMode = mode;
-            const bg = document.getElementById('wallpaper-bg'), canvas = document.getElementById('aurora-canvas');
-            if (mode === 'aurora') {
-                bg.style.display = 'none'; canvas.style.display = 'block';
-                if (!auroraReq) animateAurora();
-            } else {
-                bg.style.display = 'block'; canvas.style.display = 'none';
-                cancelAnimationFrame(auroraReq); auroraReq = null;
-            }
-            updateActiveCards(); persist();
         }
 
         /** GRID & CLOCK RENDERING **/
@@ -353,28 +327,33 @@
                     const angle = (i * Math.PI / 30);
                     const dist = radius / Math.max(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle)));
                     const len = i % 5 === 0 ? 18 * dpr : 8 * dpr;
-                    ctx.beginPath(); ctx.moveTo(Math.sin(angle) * dist, -Math.cos(angle) * dist); ctx.lineTo(Math.sin(angle) * (dist - len), -Math.cos(angle) * (dist - len));
-                    ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2 * dpr; ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(Math.sin(angle) * dist, -Math.cos(angle) * dist);
+                    ctx.lineTo(Math.sin(angle) * (dist - len), -Math.cos(angle) * (dist - len));
+                    ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)';
+                    ctx.lineWidth = 2 * dpr; ctx.stroke();
                 }
             }
             const hL = radius * 0.5, mL = radius * 0.85, sL = radius * 0.95;
-            const hand = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
-            hand((hrs * Math.PI / 6) + (mins * Math.PI / 360), hL, 7 * dpr, '#fff');
-            hand((mins * Math.PI / 30) + (secs * Math.PI / 1800), mL, 4.5 * dpr, '#fff');
-            if (state.showSeconds) hand(secs * Math.PI / 30, sL, 2 * dpr, (state.clockStyle === 'square' || state.face === 'outlined') ? '#fff' : '#ff3b30');
+            const dh = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
+            dh((hrs * Math.PI / 6) + (mins * Math.PI / 360), hL, 7 * dpr, '#fff');
+            dh((mins * Math.PI / 30) + (secs * Math.PI / 1800), mL, 4.5 * dpr, '#fff');
+            if (state.showSeconds) dh(secs * Math.PI / 30, sL, 2 * dpr, (state.clockStyle === 'square' || state.face === 'outlined') ? '#fff' : '#ff3b30');
             ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
         }
 
         function updateClock() {
             const isLand = window.matchMedia("(orientation: landscape)").matches;
+            const root = document.documentElement;
             const mult = scaleMap[state.contentScale];
-            document.documentElement.style.setProperty('--content-scale-mult', mult);
+            root.style.setProperty('--content-scale-mult', mult);
+
+            // Clock Font ignores Content Scale
+            root.style.setProperty('--font-clamp-normal', isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p);
+            const redIdx = Math.max(0, sizes.indexOf(state.clockSize) - 1);
+            root.style.setProperty('--font-clamp-reduced', isLand ? fontClamps[sizes[redIdx]].l : fontClamps[sizes[redIdx]].p);
+
             const container = document.getElementById('clock-content');
             if (state.clockStyle === 'digital') {
-                const bN = isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p;
-                document.documentElement.style.setProperty('--font-clamp-normal', applyScaleToClamp(bN, mult));
-                const bR = isLand ? fontClamps[sizes[Math.max(0, sizes.indexOf(state.clockSize)-1)]].l : fontClamps[sizes[Math.max(0, sizes.indexOf(state.clockSize)-1)]].p;
-                document.documentElement.style.setProperty('--font-clamp-reduced', applyScaleToClamp(bR, mult));
                 const now = new Date();
                 const s = state.showSeconds ? `<span class="digital-seconds" style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
                 container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>` +
@@ -392,7 +371,7 @@
             icon.style.marginBottom = `clamp(2px, ${8 * s}px, 16px)`;
             temp.style.fontSize = `clamp(1.2rem, ${3.5 * s}rem, 7rem)`;
             cond.style.fontSize = `clamp(0.6rem, ${1.2 * s}rem, 2rem)`;
-            cond.style.marginBottom = `clamp(2px, ${8 * s}px, 16px)`; // Fixed 'scale' to 's'
+            cond.style.marginBottom = `clamp(2px, ${8 * s}px, 16px)`;
             loc.style.fontSize = `clamp(0.5rem, ${0.85 * s}rem, 1.4rem)`;
             loc.style.display = s < 0.5 ? 'none' : 'block';
             cond.style.display = s < 0.35 ? 'none' : 'block';
@@ -406,7 +385,7 @@
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
                     const d = await res.json();
                     document.getElementById('temp').textContent = Math.round(d.current_weather.temperature) + '°';
-                    document.getElementById('condition').textContent = weatherTexts[d.current_weather.weathercode] || "Cloudy";
+                    document.getElementById('condition').textContent = weatherTexts[d.current_weather.weathercode] || "Clear Sky";
                     document.getElementById('weather-icon').textContent = weatherIconMap[d.current_weather.weathercode] || '☀️';
                     const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&email=standby@app.local`);
                     const g = await geoRes.json();
@@ -427,44 +406,6 @@
             }
         }
 
-        /** WALLPAPER PERSISTENCE **/
-        function tryPersistToStorage(data) {
-            try { localStorage.setItem('standby_v27', JSON.stringify({ ...state, wallpaper: data })); return true; } catch (e) { return false; }
-        }
-
-        async function processWP(imgSrc) {
-            const img = new Image(); img.crossOrigin = "anonymous";
-            img.onload = () => {
-                const run = (mW, q) => {
-                    const c = document.createElement('canvas'); let w = img.width, h = img.height;
-                    if (w > mW) { h *= mW/w; w = mW; }
-                    c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
-                    return c.toDataURL('image/jpeg', q);
-                };
-                const a1 = run(1280, 0.75);
-                state.wallpaper = a1; toggleWallpaperMode('image');
-                document.getElementById('wallpaper-bg').style.backgroundImage = `url(${a1})`;
-                const s = document.getElementById('wp-status'); s.innerHTML = '<span class="status-success">✓ Saved</span>';
-                setTimeout(() => s.innerHTML = '', 2000);
-                if (!tryPersistToStorage(a1)) {
-                    const a2 = run(1280, 0.5);
-                    if (!tryPersistToStorage(a2)) {
-                        const a3 = run(800, 0.5);
-                        if (tryPersistToStorage(a3)) state.wallpaper = a3;
-                    } else state.wallpaper = a2;
-                }
-            };
-            img.src = imgSrc;
-        }
-
-        async function loadRandomArt() {
-            try {
-                const res = await fetch(`https://picsum.photos/1920/1080?random=${Date.now()}`);
-                const blob = await res.blob();
-                const r = new FileReader(); r.onloadend = () => processWP(r.result); r.readAsDataURL(blob);
-            } catch (e) {}
-        }
-
         /** INIT **/
         function init() {
             ['standby_v26','standby_v25','standby_v24'].forEach(k => localStorage.removeItem(k));
@@ -472,8 +413,6 @@
             if (saved) state = { ...state, ...JSON.parse(saved) };
             
             initAurora();
-            if(state.wallpaperMode === 'aurora') toggleWallpaperMode('aurora');
-            else if (state.wallpaper) requestAnimationFrame(() => document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`);
 
             const themeGrid = document.getElementById('theme-grid');
             auroraThemes.forEach((t, i) => {
@@ -494,15 +433,18 @@
             document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
             document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
             modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-            document.getElementById('art-btn').onclick = loadRandomArt;
-            document.getElementById('aurora-toggle').onclick = () => toggleWallpaperMode(state.wallpaperMode === 'aurora' ? 'image' : 'aurora');
-            document.getElementById('wp-input').onchange = (e) => {
-                if (e.target.files[0]) { const r = new FileReader(); r.onload = (ev) => processWP(ev.target.result); r.readAsDataURL(e.target.files[0]); }
-            };
 
-            document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); persist(); });
+            document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { 
+                state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); persist();
+            });
+
             document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); persist(); };
-            document.getElementById('content-scale-slider').oninput = (e) => { state.contentScale = scaleKeys[e.target.value]; updateClock(); persist(); };
+            document.getElementById('content-scale-slider').oninput = (e) => { 
+                state.contentScale = scaleKeys[e.target.value]; updateClock(); 
+                const wx = document.getElementById('weather-widget').getBoundingClientRect();
+                updateWeatherScaling(document.getElementById('weather-widget'), wx.width, wx.height);
+                updateCalendar(); persist();
+            };
 
             ['seconds', 'date', 'day'].forEach(k => {
                 const el = document.getElementById(`check-${k}`);
@@ -510,17 +452,17 @@
                 el.onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); persist(); };
             });
 
-            const container = document.getElementById('app-container'), minPx = 150;
+            const container = document.getElementById('app-container');
             const handleDrag = (div, type) => {
                 const onMove = (e) => {
                     if (e.touches && e.touches.length === 0) return;
                     const t = e.touches ? e.touches[0] : e, r = container.getBoundingClientRect(), p = 24, g = 20;
-                    if (type === 'v') state.gridL.c = Math.max(minPx, Math.min(r.width - p*2 - g - minPx, t.clientX - r.left - p)) / (r.width - p*2 - g - Math.max(minPx, Math.min(r.width - p*2 - g - minPx, t.clientX - r.left - p)));
-                    else if (type === 'h-land') state.gridL.r = Math.max(minPx, Math.min(r.height - p*2 - g - minPx, t.clientY - r.top - p)) / (r.height - p*2 - g - Math.max(minPx, Math.min(r.height - p*2 - g - minPx, t.clientY - r.top - p)));
+                    if (type === 'v') state.gridL.c = Math.max(150, Math.min(r.width - p*2 - g - 150, t.clientX - r.left - p)) / (r.width - p*2 - g - Math.max(150, Math.min(r.width - p*2 - g - 150, t.clientX - r.left - p)));
+                    else if (type === 'h-land') state.gridL.r = Math.max(150, Math.min(r.height - p*2 - g - 150, t.clientY - r.top - p)) / (r.height - p*2 - g - Math.max(150, Math.min(r.height - p*2 - g - 150, t.clientY - r.top - p)));
                     else {
                         const h = r.height - p*2 - g*2, y = t.clientY - r.top - p;
-                        if (type === 'h-p1') { const r1 = Math.max(minPx, Math.min(h - 300, y)); state.gridP.r1 = r1 / (h/3); state.gridP.r2 = ((h - r1) / 2) / (h/3); state.gridP.r3 = state.gridP.r2; }
-                        else { const r1Px = state.gridP.r1 * (h/3), r2 = Math.max(minPx, Math.min(h - r1Px - minPx, y - r1Px - g)); state.gridP.r2 = r2 / (h/3); state.gridP.r3 = (h - r1Px - r2) / (h/3); }
+                        if (type === 'h-p1') { const r1 = Math.max(150, Math.min(h - 300, y)); state.gridP.r1 = r1 / (h/3); state.gridP.r2 = ((h - r1) / 2) / (h/3); state.gridP.r3 = state.gridP.r2; }
+                        else { const r1Px = state.gridP.r1 * (h/3), r2 = Math.max(150, Math.min(h - r1Px - 150, y - r1Px - g)); state.gridP.r2 = r2 / (h/3); state.gridP.r3 = (h - r1Px - r2) / (h/3); }
                     }
                     applyGrid(); if (e.cancelable) e.preventDefault();
                 };
@@ -535,14 +477,15 @@
                 for (let e of es) {
                     const { width: w, height: h } = e.contentRect, el = e.target;
                     if (el.id === 'clock-widget') {
-                        el.classList.toggle('h-lt-200', h < 200); el.classList.toggle('w-lt-250', w < 250); el.classList.toggle('gt-400', h > 400 && w > 400);
+                        el.classList.toggle('h-lt-200', h < 200); el.classList.toggle('w-lt-250', w < 250);
+                        el.classList.toggle('gt-400', h > 400 && w > 400);
                         if (state.clockStyle !== 'digital') drawAnalogue();
                     } else if (el.id === 'weather-widget') updateWeatherScaling(el, w, h);
                     else if (el.id === 'calendar-widget') { el.classList.toggle('h-lt-220', h < 220); el.classList.toggle('h-lt-150', h < 150); }
                 }
             }, 50)).observe(document.getElementById('clock-widget'));
             document.querySelectorAll('.widget').forEach(w => { if(w.id !== 'clock-widget') new ResizeObserver(debounce((es) => { for(let e of es) if(e.target.id === 'weather-widget') updateWeatherScaling(e.target, e.contentRect.width, e.contentRect.height); }, 50)).observe(w); });
-            if (navigator.wakeLock) getWakeLock();
+            if (navigator.wakeLock) { navigator.wakeLock.request('screen').catch(()=>{}); }
         }
 
         window.addEventListener('orientationchange', () => { state.gridL = { c: 1, r: 1 }; state.gridP = { r1: 1, r2: 1, r3: 1 }; applyGrid(); updateClock(); persist(); });
@@ -550,17 +493,11 @@
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
             document.querySelectorAll('.theme-circle').forEach((c, i) => c.classList.toggle('active', state.auroraTheme === i));
-            const isAurora = state.wallpaperMode === 'aurora';
-            document.getElementById('aurora-toggle').classList.toggle('active', isAurora);
-            document.getElementById('aurora-theme-section').style.display = isAurora ? 'block' : 'none';
-            document.getElementById('aurora-note').style.display = isAurora ? 'block' : 'none';
-            document.getElementById('size-options-container').style.display = 'block';
             document.getElementById('digital-options').style.display = (state.clockStyle === 'digital') ? 'block' : 'none';
             document.getElementById('analogue-faces').style.display = (state.clockStyle === 'analogue') ? 'block' : 'none';
             document.getElementById('clock-size-slider').value = sizes.indexOf(state.clockSize);
             document.getElementById('content-scale-slider').value = scaleKeys.indexOf(state.contentScale);
         }
-
         init();
     </script>
 </body>
