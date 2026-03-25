@@ -51,32 +51,26 @@
             #div-v, #div-h-land { display: none; }
         }
 
-        /* HARDENED DIVIDERS FOR TOUCH */
+        /* GRID DIVIDERS */
         .divider { 
             align-items: center; justify-content: center; 
             background: transparent; position: relative; z-index: 10; 
-            touch-action: none; /* Stop browser from intercepting touch */
+            touch-action: none;
         }
         .divider::after { 
-            content: ''; background: rgba(255,255,255,0.2); 
+            content: ''; background: rgba(255,255,255,0.4); 
             border-radius: 10px; transition: all 0.2s; 
-            opacity: 0; /* Default hidden for mouse */
+            opacity: 0.25; /* Always subtly visible */
         }
-        
-        @media (hover: none) {
-            .divider::after { opacity: 0.3; } /* Always visible on iPad/Touch */
-        }
-
         .divider:hover::after, .divider.dragging::after { 
             background: var(--ios-blue); 
             box-shadow: 0 0 10px var(--ios-blue); 
-            opacity: 1 !important; 
+            opacity: 1; 
         }
 
-        .divider.v { cursor: col-resize; width: var(--gap); padding: 0 10px; } /* Wider hit area */
+        .divider.v { cursor: col-resize; width: var(--gap); padding: 0 10px; }
         .divider.v::after { width: 4px; height: 40px; }
-        
-        .divider.h { cursor: row-resize; height: var(--gap); padding: 10px 0; } /* Taller hit area */
+        .divider.h { cursor: row-resize; height: var(--gap); padding: 10px 0; }
         .divider.h::after { width: 40px; height: 4px; }
 
         .widget {
@@ -105,7 +99,7 @@
         /* Settings UI */
         #settings-btn { position: fixed; bottom: 25px; right: 25px; background: var(--glass); border: 1px solid var(--glass-border); color: #fff; padding: 14px; border-radius: 50%; font-size: 1.6rem; z-index: 1000; cursor: pointer; }
         #settings-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1001; backdrop-filter: blur(15px); }
-        .modal-content { background: #1c1c1e; width: 90%; max-width: 500px; max-height: 85vh; border-radius: 30px; padding: 30px; overflow-y: auto; border: 1px solid #38383a; position: relative; }
+        .modal-content { background: #1c1c1e; width: 90%; max-width: 500px; max-height: 85vh; border-radius: 30px; padding: 30px; overflow-y: auto; border: 1px solid #38383a; position: relative; touch-action: pan-y; }
         .modal-close-x { position: absolute; top: 20px; right: 20px; background: none; border: none; color: #8e8e93; font-size: 1.8rem; cursor: pointer; }
         .setting-section { margin-bottom: 25px; }
         .setting-section h3 { font-size: 0.75rem; color: #8e8e93; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
@@ -253,15 +247,11 @@
         let wakeLock = null;
         async function getWakeLock() {
             if ('wakeLock' in navigator) {
-                try {
-                    if (wakeLock) await wakeLock.release();
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (e) {}
+                try { if (wakeLock) await wakeLock.release(); wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
             }
         }
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') getWakeLock(); });
 
-        /** CLOCK RENDERING **/
         let clockCanvas, ctx;
         function drawAnalogue() {
             if (state.clockStyle !== 'analogue') return;
@@ -283,10 +273,11 @@
             }
             ctx.restore();
             const now = new Date(), hrs = now.getHours() % 12, mins = now.getMinutes(), secs = now.getSeconds();
+            const hL = radius * 0.5, mL = radius * 0.8, sL = radius * 0.9;
             const dh = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
-            dh((hrs * Math.PI / 6) + (mins * Math.PI / 360), radius * 0.5, 7 * dpr, '#fff');
-            dh((mins * Math.PI / 30) + (secs * Math.PI / 1800), radius * 0.8, 4.5 * dpr, '#fff');
-            if (state.showSeconds) dh(secs * Math.PI / 30, radius * 0.9, 2 * dpr, state.face === 'outlined' ? '#fff' : '#ff3b30');
+            dh((hrs * Math.PI / 6) + (mins * Math.PI / 360), hL, 7 * dpr, '#fff');
+            dh((mins * Math.PI / 30) + (secs * Math.PI / 1800), mL, 4.5 * dpr, '#fff');
+            if (state.showSeconds) dh(secs * Math.PI / 30, sL, 2 * dpr, state.face === 'outlined' ? '#fff' : '#ff3b30');
             ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
         }
 
@@ -300,7 +291,6 @@
             const reducedIdx = Math.max(0, sizes.indexOf(state.clockSize) - 1);
             const baseReduced = isLand ? fontClamps[sizes[reducedIdx]].l : fontClamps[sizes[reducedIdx]].p;
             root.style.setProperty('--font-clamp-reduced', applyScaleToClamp(baseReduced, mult));
-
             const now = new Date(), container = document.getElementById('clock-content');
             if (state.clockStyle === 'digital') {
                 const s = state.showSeconds ? `<span class="digital-seconds" style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
@@ -309,7 +299,6 @@
             } else { drawAnalogue(); }
         }
 
-        /** CONTINUOUS WEATHER SCALING **/
         function updateWeatherScaling(el, w, h) {
             const mult = scaleMap[state.contentScale];
             const scale = Math.min(w / 350, h / 280) * mult;
@@ -353,22 +342,17 @@
             document.querySelectorAll('.widget').forEach(w => observer.observe(w));
         }
 
-        /** HARDENED TOUCH DIVIDER LOGIC **/
         function initGridInteraction() {
             const container = document.getElementById('app-container'), minPx = 150;
             const handleDrag = (divider, type) => {
                 const onMove = (e) => {
-                    // Guard against empty touches
                     if (e.touches && e.touches.length === 0) return;
-                    
-                    const t = e.touches ? e.touches[0] : e;
-                    const rect = container.getBoundingClientRect(), pad = 24, gap = 12;
-                    
+                    const t = e.touches ? e.touches[0] : e, rect = container.getBoundingClientRect(), pad = 24, gap = 12;
                     if (type === 'v') {
                         const x = Math.max(minPx, Math.min(rect.width - minPx, t.clientX - rect.left - pad));
                         state.gridL.c = x / (rect.width - pad * 2 - gap - x);
                     } else if (type === 'h-land') {
-                        const y = Math.max(minPx, Math.min(rect.height - minPx, t.clientY - rect.top - pad));
+                        const y = Math.max(minPx, Math.min(rect.height - pad * 2 - gap - minPx, t.clientY - rect.top - pad));
                         state.gridL.r = y / (rect.height - pad * 2 - gap - y);
                     } else {
                         const h = rect.height - pad * 2 - gap * 2, y = t.clientY - rect.top - pad;
@@ -381,36 +365,25 @@
                         }
                     }
                     applyGrid();
-                    if (e.cancelable) e.preventDefault(); // Stop iPad scroll during drag
-                };
-
-                const onEnd = () => {
-                    divider.classList.remove('dragging');
-                    window.removeEventListener('mousemove', onMove);
-                    window.removeEventListener('mouseup', onEnd);
-                    window.removeEventListener('touchmove', onMove);
-                    window.removeEventListener('touchend', onEnd);
-                    localStorage.setItem('standby_v22', JSON.stringify(state));
-                };
-
-                // Use non-passive listeners for touch to allow preventDefault()
-                const startFunc = (e) => {
-                    divider.classList.add('dragging');
-                    window.addEventListener('mousemove', onMove);
-                    window.addEventListener('mouseup', onEnd);
-                    window.addEventListener('touchmove', onMove, { passive: false });
-                    window.addEventListener('touchend', onEnd);
                     if (e.cancelable) e.preventDefault();
                 };
-
+                const onEnd = () => {
+                    divider.classList.remove('dragging');
+                    window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onEnd);
+                    window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd);
+                    localStorage.setItem('standby_v22', JSON.stringify(state));
+                };
+                const startFunc = (e) => {
+                    divider.classList.add('dragging');
+                    window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onEnd);
+                    window.addEventListener('touchmove', onMove, { passive: false }); window.addEventListener('touchend', onEnd);
+                    if (e.cancelable) e.preventDefault();
+                };
                 divider.addEventListener('mousedown', startFunc);
                 divider.addEventListener('touchstart', startFunc, { passive: false });
             };
-
-            handleDrag(document.getElementById('div-v'), 'v');
-            handleDrag(document.getElementById('div-h-land'), 'h-land');
-            handleDrag(document.getElementById('div-h-port-1'), 'h-p1');
-            handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
+            handleDrag(document.getElementById('div-v'), 'v'); handleDrag(document.getElementById('div-h-land'), 'h-land');
+            handleDrag(document.getElementById('div-h-port-1'), 'h-p1'); handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
         }
 
         async function fetchWeather() {
@@ -425,7 +398,8 @@
                     document.getElementById('weather-icon').textContent = weatherIconMap[code] || '☀️';
                     const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&email=standby@app.local`);
                     const g = await geoRes.json();
-                    document.getElementById('location').textContent = `📍 ${g.address.city || g.address.town || "Nearby"}`;
+                    const city = g.address.city || g.address.town || g.address.village || "Unknown";
+                    document.getElementById('location').textContent = `📍 ${city}, ${g.address.country || ""}`;
                 } catch (e) {}
             }, () => { document.getElementById('condition').textContent = "Location Denied"; document.getElementById('weather-icon').textContent = "🌡️"; });
         }
@@ -444,8 +418,13 @@
             updateCalendarScaling(calX, cr.width, cr.height);
         }
 
-        function tryPersistToStorage(imageData) {
-            try { localStorage.setItem('standby_v22', JSON.stringify({ ...state, wallpaper: imageData })); return true; } catch (e) { return false; }
+        /** WALLPAPER & STORAGE **/
+        function tryPersistToStorage(data) {
+            try { 
+                const newState = { ...state, wallpaper: data };
+                localStorage.setItem('standby_v22', JSON.stringify(newState)); 
+                return true; 
+            } catch (e) { return false; }
         }
 
         async function processWP(file) {
@@ -459,16 +438,28 @@
                         c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
                         return c.toDataURL('image/jpeg', q);
                     };
+                    
                     const a1 = run(1280, 0.75);
+                    // Immediate UI application
                     state.wallpaper = a1; document.getElementById('wallpaper-bg').style.backgroundImage = `url(${a1})`;
                     const s = document.getElementById('wp-status'); s.textContent = "✓ Saved"; s.className = "status-success";
                     setTimeout(() => s.textContent = "", 2000);
+
+                    // Tiered persistence
                     if (!tryPersistToStorage(a1)) {
                         const a2 = run(1280, 0.5);
                         if (!tryPersistToStorage(a2)) {
                             const a3 = run(800, 0.5);
-                            if (tryPersistToStorage(a3)) state.wallpaper = a3;
-                        } else state.wallpaper = a2;
+                            if (tryPersistToStorage(a3)) {
+                                state.wallpaper = a3;
+                                localStorage.setItem('standby_v22', JSON.stringify(state));
+                            } else alert("Storage full.");
+                        } else {
+                            state.wallpaper = a2;
+                            localStorage.setItem('standby_v22', JSON.stringify(state));
+                        }
+                    } else {
+                        localStorage.setItem('standby_v22', JSON.stringify(state));
                     }
                 };
                 img.src = ev.target.result;
