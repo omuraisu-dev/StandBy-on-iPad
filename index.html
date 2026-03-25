@@ -52,6 +52,7 @@
             #div-v, #div-h-land { display: none; }
         }
 
+        /* Interaction Dividers */
         .divider { display: flex; align-items: center; justify-content: center; background: transparent; position: relative; z-index: 10; touch-action: none; }
         .divider::after { content: ''; background: #fff; border-radius: 10px; transition: all 0.2s; opacity: 0.25; }
         .divider:hover::after, .divider.dragging::after { background: var(--ios-blue); box-shadow: 0 0 12px var(--ios-blue); opacity: 1; }
@@ -73,11 +74,6 @@
         #clock-widget.w-lt-250 .digital-seconds { display: none !important; }
         #clock-widget.gt-400 .date-info { margin-top: 16px; font-weight: 400; opacity: 0.8; }
 
-        #weather-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 5px; }
-        #temp { font-size: 3.5rem; font-weight: 300; line-height: 1; }
-        #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
-        #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
-
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 95%; text-align: center; font-size: 0.9rem; }
         .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; }
         .day-header { height: 24px; opacity: 0.4; font-weight: bold; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
@@ -94,7 +90,6 @@
 
         .setting-section { margin-bottom: 25px; }
         .setting-section h3 { font-size: 0.75rem; color: #8e8e93; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
-        
         .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .preview-card { background: #2c2c2e; border: 2px solid transparent; border-radius: 14px; padding: 14px; text-align: center; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
         .preview-card.active { border-color: var(--ios-blue); background: #3a3a3c; }
@@ -143,7 +138,7 @@
             <h2 style="margin-top:0">Settings</h2>
             
             <div class="setting-section">
-                <h3>🌌 Live Aurora Background</h3>
+                <h3>🌌 Live Aurora Theme</h3>
                 <div class="theme-grid" id="theme-grid"></div>
             </div>
 
@@ -206,7 +201,6 @@
     </div>
 
     <script>
-        /** STATE & CONSTANTS **/
         const sizes = ['xs', 'small', 'medium', 'large', 'xl'];
         const scaleKeys = ['compact', 'small', 'normal', 'large', 'fill'];
         const scaleMap = { compact: 0.6, small: 0.8, normal: 1.0, large: 1.2, fill: 1.4 };
@@ -231,7 +225,7 @@
             gridL: { c: 1, r: 1 }, gridP: { r1: 1, r2: 1, r3: 1 }
         };
 
-        const weatherIconMap = { 0:'☀️',1:'🌤️',2:'🌤️',3:'🌤️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',56:'🌦️',57:'🌦️',61:'🌦️',63:'🌦️',65:'🌦️',66:'🌦️',67:'🌦️',71:'❄️',73:'❄️',75:'❄️',77:'❄️',80:'🌧️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️' };
+        const weatherIconMap = { 0:'☀️', 1:'🌤️', 2:'🌤️', 3:'🌤️', 45:'🌫️', 48:'🌫️', 51:'🌦️', 53:'🌦️', 55:'🌦️', 56:'🌦️', 57:'🌦️', 61:'🌦️', 63:'🌦️', 65:'🌦️', 66:'🌦️', 67:'🌦️', 71:'❄️', 73:'❄️', 75:'❄️', 77:'❄️', 80:'🌧️', 81:'🌧️', 82:'🌧️', 95:'⛈️', 96:'⛈️', 99:'⛈️' };
         const weatherTexts = { 0:"Clear Sky",1:"Mainly Clear",2:"Partly Cloudy",3:"Overcast",45:"Foggy",48:"Dense Fog",51:"Drizzle",61:"Rainy",71:"Snowy",81:"Showers",95:"Stormy" };
         const fontClamps = {
             xs:     { l: 'clamp(1.5rem, 4vw, 3.5rem)', p: 'clamp(2rem, 8vw, 5rem)' },
@@ -248,34 +242,54 @@
         let auroraCanvas, aCtx, auroraReq;
         let blobs = [];
 
+        function resizeAurora() { 
+            if(!auroraCanvas) return; 
+            auroraCanvas.width = Math.max(1, window.innerWidth); 
+            auroraCanvas.height = Math.max(1, window.innerHeight); 
+        }
+
         function initAurora() {
             auroraCanvas = document.getElementById('aurora-canvas');
             aCtx = auroraCanvas.getContext('2d');
             window.addEventListener('resize', resizeAurora);
             resizeAurora();
             blobs = [];
-            for(let i=0; i<5; i++) {
-                blobs.push({ x: Math.random() * 2000, y: Math.random() * 2000, r: Math.random() * 300 + 300, phase: Math.random() * Math.PI * 2, speed: 0.0004 + Math.random() * 0.0006 });
+            for(let i=0; i<6; i++) {
+                blobs.push({ x: Math.random() * 2000, y: Math.random() * 2000, r: Math.random() * 400 + 400, phase: Math.random() * Math.PI * 2, speed: 0.0003 + Math.random() * 0.0005 });
             }
             animateAurora();
         }
 
-        function resizeAurora() { if(!auroraCanvas) return; auroraCanvas.width = window.innerWidth; auroraCanvas.height = window.innerHeight; }
-
         function animateAurora() {
+            if (auroraCanvas.width === 0 || auroraCanvas.height === 0) resizeAurora();
+
             const w = auroraCanvas.width, h = auroraCanvas.height, time = Date.now(), theme = auroraThemes[state.auroraTheme].colors;
+            
+            // Failsafe: Reset alpha to 1 before clear
+            aCtx.globalAlpha = 1;
             aCtx.fillStyle = '#000';
             aCtx.fillRect(0, 0, w, h);
+
             blobs.forEach((b, i) => {
                 const color = theme[i % theme.length];
                 const driftX = Math.sin(time * b.speed + b.phase) * (w * 0.3);
                 const driftY = Math.cos(time * b.speed * 0.8 + b.phase) * (h * 0.3);
                 const curX = (b.x % w) + driftX;
                 const curY = (b.y % h) + driftY;
+
                 const grad = aCtx.createRadialGradient(curX, curY, 0, curX, curY, b.r);
-                grad.addColorStop(0, color); grad.addColorStop(1, 'transparent');
-                aCtx.globalAlpha = 0.45; aCtx.fillStyle = grad; aCtx.beginPath(); aCtx.arc(curX, curY, b.r, 0, Math.PI * 2); aCtx.fill();
+                grad.addColorStop(0, color);
+                grad.addColorStop(1, 'transparent');
+
+                aCtx.globalAlpha = 0.45; 
+                aCtx.fillStyle = grad;
+                aCtx.beginPath();
+                aCtx.arc(curX, curY, b.r, 0, Math.PI * 2);
+                aCtx.fill();
             });
+
+            // Clean up alpha for the next fillRect cycle
+            aCtx.globalAlpha = 1;
             auroraReq = requestAnimationFrame(animateAurora);
         }
 
@@ -334,10 +348,10 @@
                 }
             }
             const hL = radius * 0.5, mL = radius * 0.85, sL = radius * 0.95;
-            const dh = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
-            dh((hrs * Math.PI / 6) + (mins * Math.PI / 360), hL, 7 * dpr, '#fff');
-            dh((mins * Math.PI / 30) + (secs * Math.PI / 1800), mL, 4.5 * dpr, '#fff');
-            if (state.showSeconds) dh(secs * Math.PI / 30, sL, 2 * dpr, (state.clockStyle === 'square' || state.face === 'outlined') ? '#fff' : '#ff3b30');
+            const hand = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
+            hand((hrs * Math.PI / 6) + (mins * Math.PI / 360), hL, 7 * dpr, '#fff');
+            hand((mins * Math.PI / 30) + (secs * Math.PI / 1800), mL, 4.5 * dpr, '#fff');
+            if (state.showSeconds) hand(secs * Math.PI / 30, sL, 2 * dpr, (state.clockStyle === 'square' || state.face === 'outlined') ? '#fff' : '#ff3b30');
             ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
         }
 
@@ -347,7 +361,6 @@
             const mult = scaleMap[state.contentScale];
             root.style.setProperty('--content-scale-mult', mult);
 
-            // Clock Font ignores Content Scale
             root.style.setProperty('--font-clamp-normal', isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p);
             const redIdx = Math.max(0, sizes.indexOf(state.clockSize) - 1);
             root.style.setProperty('--font-clamp-reduced', isLand ? fontClamps[sizes[redIdx]].l : fontClamps[sizes[redIdx]].p);
@@ -361,7 +374,7 @@
             } else { drawAnalogue(); }
         }
 
-        /** WEATHER & SCALING **/
+        /** WEATHER & CALENDAR SCALING **/
         function updateWeatherScaling(el, w, h) {
             const m = scaleMap[state.contentScale];
             const s = Math.min(w / 350, h / 280) * m;
@@ -383,10 +396,10 @@
                 const { latitude: lat, longitude: lon } = pos.coords;
                 try {
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
-                    const d = await res.json();
+                    const d = await res.json(), code = d.current_weather.weathercode;
                     document.getElementById('temp').textContent = Math.round(d.current_weather.temperature) + '°';
-                    document.getElementById('condition').textContent = weatherTexts[d.current_weather.weathercode] || "Clear Sky";
-                    document.getElementById('weather-icon').textContent = weatherIconMap[d.current_weather.weathercode] || '☀️';
+                    document.getElementById('condition').textContent = weatherTexts[code] || "Clear Sky";
+                    document.getElementById('weather-icon').textContent = weatherIconMap[code] || '☀️';
                     const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&email=standby@app.local`);
                     const g = await geoRes.json();
                     document.getElementById('location').textContent = `📍 ${g.address.city || g.address.town || "Nearby"}`;
@@ -404,6 +417,30 @@
                 const isToday = d === now.getDate();
                 grid.innerHTML += `<div class="day-cell">${isToday ? `<div class="today-circle">${d}</div>` : d}</div>`;
             }
+        }
+
+        /** INTERACTION **/
+        function initGridInteraction() {
+            const container = document.getElementById('app-container'), minPx = 150;
+            const handleDrag = (div, type) => {
+                const onMove = (e) => {
+                    if (e.touches && e.touches.length === 0) return;
+                    const t = e.touches ? e.touches[0] : e, r = container.getBoundingClientRect(), p = 24, g = 20;
+                    if (type === 'v') state.gridL.c = Math.max(minPx, Math.min(r.width - p*2 - g - minPx, t.clientX - r.left - p)) / (r.width - p*2 - g - Math.max(minPx, Math.min(r.width - p*2 - g - minPx, t.clientX - r.left - p)));
+                    else if (type === 'h-land') state.gridL.r = Math.max(minPx, Math.min(r.height - p*2 - g - minPx, t.clientY - r.top - p)) / (r.height - p*2 - g - Math.max(minPx, Math.min(r.height - p*2 - g - minPx, t.clientY - r.top - p)));
+                    else {
+                        const h = r.height - p*2 - g*2, y = t.clientY - r.top - p;
+                        if (type === 'h-p1') { const r1 = Math.max(minPx, Math.min(h - 300, y)); state.gridP.r1 = r1 / (h/3); state.gridP.r2 = ((h - r1) / 2) / (h/3); state.gridP.r3 = state.gridP.r2; }
+                        else { const r1Px = state.gridP.r1 * (h/3), r2 = Math.max(minPx, Math.min(h - r1Px - minPx, y - r1Px - g)); state.gridP.r2 = r2 / (h/3); state.gridP.r3 = (h - r1Px - r2) / (h/3); }
+                    }
+                    applyGrid(); if (e.cancelable) e.preventDefault();
+                };
+                const onEnd = () => { div.classList.remove('dragging'); window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onEnd); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); persist(); };
+                const start = (e) => { div.classList.add('dragging'); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onEnd); window.addEventListener('touchmove', onMove, { passive: false }); window.addEventListener('touchend', onEnd); if (e.cancelable) e.preventDefault(); };
+                div.addEventListener('mousedown', start); div.addEventListener('touchstart', start, { passive: false });
+            };
+            handleDrag(document.getElementById('div-v'), 'v'); handleDrag(document.getElementById('div-h-land'), 'h-land');
+            handleDrag(document.getElementById('div-h-port-1'), 'h-p1'); handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
         }
 
         /** INIT **/
@@ -424,7 +461,7 @@
             });
 
             applyGrid(); updateActiveCards(); updateCalendar(); fetchWeather();
-            setInterval(fetchWeather, 600000);
+            setInterval(fetchWeather, 600000); 
             
             const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); }; tick();
             const dateTick = () => { const now = new Date(), tm = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); setTimeout(() => { updateCalendar(); updateClock(); dateTick(); }, tm - now); }; dateTick();
@@ -441,8 +478,8 @@
             document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); persist(); };
             document.getElementById('content-scale-slider').oninput = (e) => { 
                 state.contentScale = scaleKeys[e.target.value]; updateClock(); 
-                const wx = document.getElementById('weather-widget').getBoundingClientRect();
-                updateWeatherScaling(document.getElementById('weather-widget'), wx.width, wx.height);
+                const wx = document.getElementById('weather-widget'), wr = wx.getBoundingClientRect();
+                updateWeatherScaling(wx, wr.width, wr.height);
                 updateCalendar(); persist();
             };
 
@@ -452,43 +489,27 @@
                 el.onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); persist(); };
             });
 
-            const container = document.getElementById('app-container');
-            const handleDrag = (div, type) => {
-                const onMove = (e) => {
-                    if (e.touches && e.touches.length === 0) return;
-                    const t = e.touches ? e.touches[0] : e, r = container.getBoundingClientRect(), p = 24, g = 20;
-                    if (type === 'v') state.gridL.c = Math.max(150, Math.min(r.width - p*2 - g - 150, t.clientX - r.left - p)) / (r.width - p*2 - g - Math.max(150, Math.min(r.width - p*2 - g - 150, t.clientX - r.left - p)));
-                    else if (type === 'h-land') state.gridL.r = Math.max(150, Math.min(r.height - p*2 - g - 150, t.clientY - r.top - p)) / (r.height - p*2 - g - Math.max(150, Math.min(r.height - p*2 - g - 150, t.clientY - r.top - p)));
-                    else {
-                        const h = r.height - p*2 - g*2, y = t.clientY - r.top - p;
-                        if (type === 'h-p1') { const r1 = Math.max(150, Math.min(h - 300, y)); state.gridP.r1 = r1 / (h/3); state.gridP.r2 = ((h - r1) / 2) / (h/3); state.gridP.r3 = state.gridP.r2; }
-                        else { const r1Px = state.gridP.r1 * (h/3), r2 = Math.max(150, Math.min(h - r1Px - 150, y - r1Px - g)); state.gridP.r2 = r2 / (h/3); state.gridP.r3 = (h - r1Px - r2) / (h/3); }
-                    }
-                    applyGrid(); if (e.cancelable) e.preventDefault();
-                };
-                const onEnd = () => { div.classList.remove('dragging'); window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onEnd); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); persist(); };
-                const start = (e) => { div.classList.add('dragging'); window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onEnd); window.addEventListener('touchmove', onMove, { passive: false }); window.addEventListener('touchend', onEnd); if (e.cancelable) e.preventDefault(); };
-                div.addEventListener('mousedown', start); div.addEventListener('touchstart', start, { passive: false });
-            };
-            handleDrag(document.getElementById('div-v'), 'v'); handleDrag(document.getElementById('div-h-land'), 'h-land');
-            handleDrag(document.getElementById('div-h-port-1'), 'h-p1'); handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
-
+            initGridInteraction();
             new ResizeObserver(debounce((es) => {
                 for (let e of es) {
                     const { width: w, height: h } = e.contentRect, el = e.target;
-                    if (el.id === 'clock-widget') {
+                    if (el.id === 'weather-widget') updateWeatherScaling(el, w, h);
+                    else if (el.id === 'clock-widget') {
                         el.classList.toggle('h-lt-200', h < 200); el.classList.toggle('w-lt-250', w < 250);
                         el.classList.toggle('gt-400', h > 400 && w > 400);
                         if (state.clockStyle !== 'digital') drawAnalogue();
-                    } else if (el.id === 'weather-widget') updateWeatherScaling(el, w, h);
-                    else if (el.id === 'calendar-widget') { el.classList.toggle('h-lt-220', h < 220); el.classList.toggle('h-lt-150', h < 150); }
+                    }
                 }
             }, 50)).observe(document.getElementById('clock-widget'));
             document.querySelectorAll('.widget').forEach(w => { if(w.id !== 'clock-widget') new ResizeObserver(debounce((es) => { for(let e of es) if(e.target.id === 'weather-widget') updateWeatherScaling(e.target, e.contentRect.width, e.contentRect.height); }, 50)).observe(w); });
+            
             if (navigator.wakeLock) { navigator.wakeLock.request('screen').catch(()=>{}); }
         }
 
-        window.addEventListener('orientationchange', () => { state.gridL = { c: 1, r: 1 }; state.gridP = { r1: 1, r2: 1, r3: 1 }; applyGrid(); updateClock(); persist(); });
+        window.addEventListener('orientationchange', () => {
+            state.gridL = { c: 1, r: 1 }; state.gridP = { r1: 1, r2: 1, r3: 1 };
+            applyGrid(); updateClock(); persist();
+        });
 
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
@@ -498,6 +519,7 @@
             document.getElementById('clock-size-slider').value = sizes.indexOf(state.clockSize);
             document.getElementById('content-scale-slider').value = scaleKeys.indexOf(state.contentScale);
         }
+
         init();
     </script>
 </body>
