@@ -21,9 +21,12 @@
             --padding-edge: 24px;
             --gap: 12px;
             
-            /* Grid Proportion Variables */
-            --lc: 1; --lr: 1;
-            --pr1: 1; --pr2: 1; --pr3: 1;
+            /* Grid Proportion Units (Set by JS with 'fr' included) */
+            --lc: 1fr; --lr: 1fr;
+            --pr1: 1fr; --pr2: 1fr; --pr3: 1fr;
+
+            --font-clamp-normal: clamp(3rem, 10vw, 9rem);
+            --font-clamp-reduced: clamp(2rem, 6vw, 5rem);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -33,16 +36,15 @@
         #dark-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: -1; }
 
         #app-container {
-            display: grid;
-            width: 100vw;
-            height: 100vh;
+            display: grid; width: 100vw; height: 100vh;
             padding: var(--padding-edge);
         }
 
+        /* Landscape Logic */
         @media (orientation: landscape) {
             #app-container {
-                grid-template-columns: var(--lc)fr var(--gap) 1fr;
-                grid-template-rows: var(--lr)fr var(--gap) 1fr;
+                grid-template-columns: var(--lc) var(--gap) 1fr;
+                grid-template-rows: var(--lr) var(--gap) 1fr;
             }
             #clock-widget { grid-column: 1; grid-row: 1 / span 3; }
             #div-v { grid-column: 2; grid-row: 1 / span 3; display: flex; }
@@ -52,10 +54,11 @@
             #div-h-port-1, #div-h-port-2 { display: none; }
         }
 
+        /* Portrait Logic */
         @media (orientation: portrait) {
             #app-container {
                 grid-template-columns: 1fr;
-                grid-template-rows: var(--pr1)fr var(--gap) var(--pr2)fr var(--gap) var(--pr3)fr;
+                grid-template-rows: var(--pr1) var(--gap) var(--pr2) var(--gap) var(--pr3);
             }
             #clock-widget { grid-row: 1; }
             #div-h-port-1 { grid-row: 2; display: flex; }
@@ -65,7 +68,6 @@
             #div-v, #div-h-land { display: none; }
         }
 
-        /* Divider Handles */
         .divider { align-items: center; justify-content: center; background: transparent; position: relative; z-index: 10; }
         .divider::after { content: ''; background: rgba(255,255,255,0.2); border-radius: 10px; transition: all 0.2s; }
         .divider:hover::after, .divider.dragging::after { background: var(--ios-blue); box-shadow: 0 0 10px var(--ios-blue); }
@@ -81,18 +83,42 @@
             padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;
         }
 
+        /* ---------------------------------
+           Responsive Widget States
+           --------------------------------- */
         #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .digital-time { line-height: 1; text-align: center; font-variant-numeric: tabular-nums; }
+        .digital-time { line-height: 1; text-align: center; font-variant-numeric: tabular-nums; font-size: var(--font-clamp-normal); }
+
+        #clock-widget.h-lt-200 .date-info { display: none !important; }
+        #clock-widget.h-lt-200 .digital-time,
+        #clock-widget.w-lt-250 .digital-time { font-size: var(--font-clamp-reduced) !important; }
+        #clock-widget.w-lt-250 .digital-seconds { display: none !important; }
+        #clock-widget.gt-400 .date-info { margin-top: 24px; font-weight: 400; }
 
         #weather-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 5px; }
         #temp { font-size: 3.5rem; font-weight: 300; line-height: 1; }
         #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
         #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
 
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 90%; text-align: center; }
-        .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; font-size: 0.9rem; }
+        #weather-widget.h-lt-180 #location { display: none !important; }
+        #weather-widget.h-lt-180 #weather-icon { font-size: 2.5rem !important; }
+        #weather-widget.h-lt-120 #condition { display: none !important; }
+        #weather-widget.h-lt-120 #weather-icon { font-size: 2rem !important; }
+        #weather-widget.h-gt-300 #weather-icon { font-size: 6rem !important; }
+        #weather-widget.h-gt-300 #temp { font-size: 5rem !important; }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 90%; text-align: center; font-size: 0.9rem; }
+        .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; }
         .day-header { height: 24px; opacity: 0.4; font-weight: bold; font-size: 0.75rem; }
         .today-circle { background: #fff; color: #000; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
+
+        #calendar-widget.h-lt-220 #cal-title { display: none !important; }
+        #calendar-widget.h-lt-220 .day-cell { height: 24px !important; }
+        #calendar-widget.h-lt-150 .day-header { display: none !important; }
+        #calendar-widget.w-gt-400 .day-cell { height: 48px !important; font-size: 1.2rem !important; }
+        #calendar-widget.w-gt-400 .today-circle { width: 40px !important; height: 40px !important; }
+        #calendar-widget.w-lt-280 .day-cell { height: 20px !important; font-size: 0.7rem !important; }
+        #calendar-widget.w-lt-280 .today-circle { width: 22px !important; height: 22px !important; }
 
         /* Settings UI */
         #settings-btn { position: fixed; bottom: 25px; right: 25px; background: var(--glass); border: 1px solid var(--glass-border); color: #fff; padding: 14px; border-radius: 50%; font-size: 1.6rem; z-index: 1000; cursor: pointer; }
@@ -129,14 +155,17 @@
         <div class="widget" id="clock-widget"><div id="clock-content"></div></div>
         <div id="div-v" class="divider v"></div>
         <div id="div-h-port-1" class="divider h"></div>
+        
         <div class="widget" id="weather-widget">
             <div id="weather-icon">--</div>
             <div id="temp">--°</div>
             <div id="condition">Locating...</div>
             <div id="location">📍 Detect Location...</div>
         </div>
+
         <div id="div-h-land" class="divider h"></div>
         <div id="div-h-port-2" class="divider h"></div>
+
         <div class="widget" id="calendar-widget">
             <div id="cal-title" style="font-weight:600; margin-bottom:8px; font-size: 1.1rem;">Month</div>
             <div id="cal-grid" class="calendar-grid"></div>
@@ -149,11 +178,13 @@
         <div class="modal-content">
             <button class="modal-close-x" id="modal-cancel">&times;</button>
             <h2 style="margin-top:0">Settings</h2>
+            
             <div class="setting-section">
                 <h3>Wallpaper</h3>
                 <input type="file" id="wp-input" accept="image/*" style="width:100%; color:white;">
                 <span id="wp-status"></span>
             </div>
+
             <div class="setting-section">
                 <h3>Clock Style</h3>
                 <div class="preview-grid">
@@ -161,6 +192,7 @@
                     <div class="preview-card" data-key="clockStyle" data-val="analogue">Analogue</div>
                 </div>
             </div>
+
             <div id="digital-options">
                 <div class="setting-section">
                     <h3>Digital Font</h3>
@@ -169,16 +201,18 @@
                         <div class="preview-card" data-key="font" data-val="Bebas Neue" style="font-family:'Bebas Neue'">Bebas</div>
                     </div>
                 </div>
+
                 <div class="setting-section">
                     <h3>Clock Size</h3>
                     <div style="padding:10px 0;">
-                        <input type="range" id="clock-size-slider" min="0" max="2" step="1" value="1" style="width:100%;">
-                        <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#8e8e93; margin-top:8px;">
-                            <span>Small</span><span>Medium</span><span>Large</span>
+                        <input type="range" id="clock-size-slider" min="0" max="4" step="1" value="2" style="width:100%;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#8e8e93; margin-top:8px;">
+                            <span>XS</span><span>S</span><span>M</span><span>L</span><span>XL</span>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="setting-section" id="analogue-faces" style="display:none">
                 <h3>Analogue Face</h3>
                 <div class="preview-grid">
@@ -187,33 +221,46 @@
                     <div class="preview-card" data-key="face" data-val="outlined">Outlined</div>
                 </div>
             </div>
+
             <div class="setting-section">
                 <h3>Display</h3>
                 <div class="toggle-item"><span>Seconds</span><label class="switch"><input type="checkbox" id="check-seconds"><span class="slider-toggle"></span></label></div>
                 <div class="toggle-item"><span>Date</span><label class="switch"><input type="checkbox" id="check-date"><span class="slider-toggle"></span></label></div>
                 <div class="toggle-item"><span>Day</span><label class="switch"><input type="checkbox" id="check-day"><span class="slider-toggle"></span></label></div>
             </div>
+
             <button id="apply-btn">Apply Changes</button>
         </div>
     </div>
 
     <script>
-        const sizes = ['small', 'medium', 'large'];
+        const sizes = ['xs', 'small', 'medium', 'large', 'xl'];
         let state = {
             clockStyle: 'digital', font: 'Inter', face: 'minimal', clockSize: 'medium',
             showSeconds: true, showDate: true, showDay: true, wallpaper: null,
             gridL: { c: 1, r: 1 }, gridP: { r1: 1, r2: 1, r3: 1 }
         };
 
-        const weatherIcons = {
+        const fontClamps = {
+            xs:     { l: 'clamp(1.5rem, 4vw, 3.5rem)', p: 'clamp(2rem, 8vw, 5rem)' },
+            small:  { l: 'clamp(2rem, 6vw, 5rem)',     p: 'clamp(3rem, 12vw, 8rem)' },
+            medium: { l: 'clamp(3rem, 10vw, 9rem)',    p: 'clamp(4rem, 18vw, 12rem)' },
+            large:  { l: 'clamp(4rem, 14vw, 13rem)',   p: 'clamp(6rem, 24vw, 16rem)' },
+            xl:     { l: 'clamp(5rem, 18vw, 16rem)',   p: 'clamp(7rem, 28vw, 20rem)' }
+        };
+
+        const weatherIconMap = {
             0:'☀️',1:'🌤️',2:'🌤️',3:'🌤️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',56:'🌦️',57:'🌦️',61:'🌦️',63:'🌦️',65:'🌦️',66:'🌦️',67:'🌦️',71:'❄️',73:'❄️',75:'❄️',77:'❄️',80:'🌧️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'
         };
         const weatherTexts = { 0:"Clear Sky",1:"Mainly Clear",2:"Partly Cloudy",3:"Overcast",45:"Foggy",48:"Dense Fog",51:"Drizzle",61:"Rainy",71:"Snowy",81:"Showers",95:"Stormy" };
-        const fontClamps = {
-            small: { l: 'clamp(2rem, 6vw, 5rem)', p: 'clamp(3rem, 12vw, 8rem)' },
-            medium: { l: 'clamp(3rem, 10vw, 9rem)', p: 'clamp(4rem, 18vw, 12rem)' },
-            large: { l: 'clamp(4rem, 14vw, 13rem)', p: 'clamp(6rem, 24vw, 16rem)' }
-        };
+
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
 
         /** WAKE LOCK **/
         let wakeLock = null;
@@ -224,20 +271,8 @@
         }
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') getWakeLock(); });
 
-        /** CLOCK & MIDNIGHT REFRESH **/
-        function startClock() {
-            const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); };
-            tick();
-        }
-
-        function scheduleMidnightRefresh() {
-            const now = new Date();
-            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-            setTimeout(() => { updateCalendar(); updateClock(); scheduleMidnightRefresh(); }, tomorrow - now);
-        }
-
         /** ANALOGUE CANVAS **/
-        let clockCanvas, ctx, resizeObserver;
+        let clockCanvas, ctx;
         function drawAnalogue() {
             if (state.clockStyle !== 'analogue') return;
             const content = document.getElementById('clock-content');
@@ -261,27 +296,53 @@
             ctx.restore();
             const now = new Date();
             const hrs = now.getHours() % 12, mins = now.getMinutes(), secs = now.getSeconds();
-            const drawHand = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -length); ctx.stroke(); ctx.restore(); };
-            const hL = radius * 0.5, mL = radius * 0.8, sL = radius * 0.9;
-            ctx.save(); ctx.rotate((hrs * Math.PI / 6) + (mins * Math.PI / 360)); ctx.beginPath(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 7 * dpr; ctx.moveTo(0, hL * 0.18); ctx.lineTo(0, -hL); ctx.stroke(); ctx.restore();
-            ctx.save(); ctx.rotate((mins * Math.PI / 30) + (secs * Math.PI / 1800)); ctx.beginPath(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 4.5 * dpr; ctx.moveTo(0, mL * 0.18); ctx.lineTo(0, -mL); ctx.stroke(); ctx.restore();
-            if (state.showSeconds) { ctx.save(); ctx.rotate(secs * Math.PI / 30); ctx.beginPath(); ctx.strokeStyle = state.face === 'outlined' ? '#fff' : '#ff3b30'; ctx.lineWidth = 2 * dpr; ctx.moveTo(0, sL * 0.18); ctx.lineTo(0, -sL); ctx.stroke(); ctx.restore(); }
-            ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
+            const drawHand = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
+            drawHand((hrs * Math.PI / 6) + (mins * Math.PI / 360), radius * 0.5, 7 * dpr, '#fff');
+            drawHand((mins * Math.PI / 30) + (secs * Math.PI / 1800), radius * 0.8, 4.5 * dpr, '#fff');
+            if (state.showSeconds) drawHand(secs * Math.PI / 30, radius * 0.9, 2 * dpr, state.face === 'outlined' ? '#fff' : '#ff3b30');
+            ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+            ctx.restore();
         }
 
         function updateClock() {
+            const isLand = window.matchMedia("(orientation: landscape)").matches;
+            const root = document.documentElement;
+            root.style.setProperty('--font-clamp-normal', isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p);
+            const curIdx = sizes.indexOf(state.clockSize);
+            const reducedIdx = Math.max(0, curIdx - 1);
+            root.style.setProperty('--font-clamp-reduced', isLand ? fontClamps[sizes[reducedIdx]].l : fontClamps[sizes[reducedIdx]].p);
+
             const now = new Date();
             const container = document.getElementById('clock-content');
             if (state.clockStyle === 'digital') {
-                const isLand = window.matchMedia("(orientation: landscape)").matches;
-                const fontSize = isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p;
-                const s = state.showSeconds ? `<span style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
-                container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'; font-size:${fontSize}">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>` +
-                ((state.showDate || state.showDay) ? `<div style="font-size:1.4rem; opacity:0.8; margin-top:8px; font-weight:300;">${state.showDay ? now.toLocaleDateString('en-US',{weekday:'long'}) : ''}${state.showDay && state.showDate ? ', ':''}${state.showDate ? now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</div>` : '');
-            } else drawAnalogue();
+                const s = state.showSeconds ? `<span class="digital-seconds" style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
+                container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>` +
+                ((state.showDate || state.showDay) ? `<div class="date-info" style="font-size:1.4rem; opacity:0.8; margin-top:8px; font-weight:300;">${state.showDay ? now.toLocaleDateString('en-US',{weekday:'long'}) : ''}${state.showDay && state.showDate ? ', ':''}${state.showDate ? now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</div>` : '');
+            } else { drawAnalogue(); }
         }
 
-        /** FRACTIONAL GRID LOGIC **/
+        /** RESIZE OBSERVERS **/
+        function initResizeObservers() {
+            const resizeDebounced = debounce((entries) => {
+                for (let entry of entries) {
+                    const w = entry.contentRect.width;
+                    const h = entry.contentRect.height;
+                    const el = entry.target;
+                    if (el.id === 'clock-widget') {
+                        el.classList.toggle('h-lt-200', h < 200); el.classList.toggle('w-lt-250', w < 250); el.classList.toggle('gt-400', h > 400 && w > 400);
+                        if (state.clockStyle === 'analogue') drawAnalogue();
+                    } else if (el.id === 'weather-widget') {
+                        el.classList.toggle('h-lt-180', h < 180); el.classList.toggle('h-lt-120', h < 120); el.classList.toggle('h-gt-300', h > 300);
+                    } else if (el.id === 'calendar-widget') {
+                        el.classList.toggle('h-lt-220', h < 220); el.classList.toggle('h-lt-150', h < 150); el.classList.toggle('w-gt-400', w > 400); el.classList.toggle('w-lt-280', w < 280);
+                    }
+                }
+            }, 50);
+            const observer = new ResizeObserver(resizeDebounced);
+            document.querySelectorAll('.widget').forEach(w => observer.observe(w));
+        }
+
+        /** GRID INTERACTION **/
         function initGridInteraction() {
             const container = document.getElementById('app-container');
             const minSize = 150;
@@ -294,13 +355,13 @@
                         const x = t.clientX - rect.left - pad;
                         const totalW = rect.width - (pad * 2) - gap;
                         if (x > minSize && (totalW - x) > minSize) {
-                            const ratio = x / (totalW - x); container.style.setProperty('--lc', ratio); state.gridL.c = ratio;
+                            const ratio = x / (totalW - x); container.style.setProperty('--lc', ratio + 'fr'); state.gridL.c = ratio;
                         }
                     } else if (type === 'h-land') {
                         const y = t.clientY - rect.top - pad;
                         const totalH = rect.height - (pad * 2) - gap;
                         if (y > minSize && (totalH - y) > minSize) {
-                            const ratio = y / (totalH - y); container.style.setProperty('--lr', ratio); state.gridL.r = ratio;
+                            const ratio = y / (totalH - y); container.style.setProperty('--lr', ratio + 'fr'); state.gridL.r = ratio;
                         }
                     } else if (type === 'h-p1' || type === 'h-p2') {
                         const totalH = rect.height - (pad * 2) - (gap * 2);
@@ -310,17 +371,20 @@
                             const r23 = totalH - r1;
                             if (r23 > minSize * 2) {
                                 state.gridP.r1 = r1 / totalH;
-                                container.style.setProperty('--pr1', state.gridP.r1);
+                                container.style.setProperty('--pr1', state.gridP.r1 + 'fr');
+                                container.style.setProperty('--pr2', ((1 - state.gridP.r1) / 2) + 'fr');
+                                container.style.setProperty('--pr3', ((1 - state.gridP.r1) / 2) + 'fr');
                             }
                         } else {
-                            const r1h = (parseFloat(getComputedStyle(container).getPropertyValue('--pr1')) || 0.33) * totalH;
+                            const curR1 = state.gridP.r1 || 0.33;
+                            const r1h = curR1 * totalH;
                             const r2 = Math.max(minSize, y - r1h - gap);
                             const r3 = totalH - r1h - r2;
                             if (r3 > minSize) {
                                 state.gridP.r2 = r2 / totalH;
                                 state.gridP.r3 = r3 / totalH;
-                                container.style.setProperty('--pr2', state.gridP.r2);
-                                container.style.setProperty('--pr3', state.gridP.r3);
+                                container.style.setProperty('--pr2', state.gridP.r2 + 'fr');
+                                container.style.setProperty('--pr3', state.gridP.r3 + 'fr');
                             }
                         }
                     }
@@ -329,7 +393,7 @@
                     divider.classList.remove('dragging');
                     window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onEnd);
                     window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd);
-                    localStorage.setItem('standby_v15', JSON.stringify(state));
+                    localStorage.setItem('standby_v17', JSON.stringify(state));
                 };
                 divider.onmousedown = divider.ontouchstart = (e) => {
                     e.preventDefault(); divider.classList.add('dragging');
@@ -343,7 +407,7 @@
             handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
         }
 
-        /** WEATHER & CALENDAR **/
+        /** DATA FETCHING **/
         async function fetchWeather() {
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -351,10 +415,9 @@
                 try {
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
                     const d = await res.json();
-                    const code = d.current_weather.weathercode;
                     document.getElementById('temp').textContent = Math.round(d.current_weather.temperature) + '°';
-                    document.getElementById('condition').textContent = weatherTexts[code] || "Overcast";
-                    document.getElementById('weather-icon').textContent = weatherIcons[code] || '🌤️';
+                    document.getElementById('condition').textContent = weatherTexts[d.current_weather.weathercode] || "Clear Sky";
+                    document.getElementById('weather-icon').textContent = weatherIconMap[d.current_weather.weathercode] || '☀️';
                     const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&email=standby@app.local`);
                     const g = await geo.json();
                     document.getElementById('location').textContent = `📍 ${g.address.city || g.address.town || "Nearby"}`;
@@ -373,11 +436,17 @@
             for (let d = 1; d <= days; d++) grid.innerHTML += `<div class="day-cell">${d === now.getDate() ? `<div class="today-circle">${d}</div>` : d}</div>`;
         }
 
-        /** TIERED WALLPAPER AUTO-SAVE **/
+        function scheduleMidnightRefresh() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            setTimeout(() => { updateCalendar(); updateClock(); scheduleMidnightRefresh(); }, tomorrow - now);
+        }
+
+        /** WALLPAPER **/
         function trySaveWP(data) {
             try {
                 const test = { ...state, wallpaper: data };
-                localStorage.setItem('standby_v15', JSON.stringify(test));
+                localStorage.setItem('standby_v17', JSON.stringify(test));
                 state.wallpaper = data;
                 document.getElementById('wallpaper-bg').style.backgroundImage = `url(${data})`;
                 const s = document.getElementById('wp-status'); s.textContent = "✓ Saved"; s.className = "status-success";
@@ -399,7 +468,7 @@
                     };
                     if (!trySaveWP(run(1280, 0.75))) {
                         if (!trySaveWP(run(1280, 0.5))) {
-                            if (!trySaveWP(run(800, 0.5))) alert("Storage full.");
+                            if (!trySaveWP(run(800, 0.5))) alert("Storage quota exceeded.");
                         }
                     }
                 };
@@ -408,27 +477,40 @@
             r.readAsDataURL(file);
         }
 
+        /** INIT **/
         function init() {
-            const saved = localStorage.getItem('standby_v15');
+            const saved = localStorage.getItem('standby_v17');
             if (saved) {
                 state = { ...state, ...JSON.parse(saved) };
                 const root = document.documentElement;
-                root.style.setProperty('--lc', state.gridL.c); root.style.setProperty('--lr', state.gridL.r);
-                root.style.setProperty('--pr1', state.gridP.r1); root.style.setProperty('--pr2', state.gridP.r2); root.style.setProperty('--pr3', state.gridP.r3 || 1);
+                root.style.setProperty('--lc', state.gridL.c + 'fr');
+                root.style.setProperty('--lr', state.gridL.r + 'fr');
+                root.style.setProperty('--pr1', state.gridP.r1 + 'fr');
+                root.style.setProperty('--pr2', state.gridP.r2 + 'fr');
+                root.style.setProperty('--pr3', (state.gridP.r3 || 1) + 'fr');
             }
             if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
             document.getElementById('check-seconds').checked = state.showSeconds;
             document.getElementById('check-date').checked = state.showDate;
             document.getElementById('check-day').checked = state.showDay;
             document.getElementById('clock-size-slider').value = sizes.indexOf(state.clockSize);
-            updateActiveCards(); updateCalendar(); fetchWeather(); setInterval(fetchWeather, 600000);
-            initGridInteraction(); getWakeLock(); startClock(); scheduleMidnightRefresh();
+
+            updateActiveCards(); 
+            initResizeObservers();
+            updateCalendar(); 
+            fetchWeather(); 
+            setInterval(fetchWeather, 600000); 
+            initGridInteraction(); 
+            getWakeLock(); 
+            updateClock();
+            setTimeout(() => { const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); }; tick(); }, 1);
+            scheduleMidnightRefresh();
         }
 
         window.addEventListener('orientationchange', () => {
             const root = document.documentElement;
-            root.style.setProperty('--lc', 1); root.style.setProperty('--lr', 1);
-            root.style.setProperty('--pr1', 1); root.style.setProperty('--pr2', 1); root.style.setProperty('--pr3', 1);
+            root.style.setProperty('--lc', '1fr'); root.style.setProperty('--lr', '1fr');
+            root.style.setProperty('--pr1', '1fr'); root.style.setProperty('--pr2', '1fr'); root.style.setProperty('--pr3', '1fr');
             setTimeout(updateClock, 200);
         });
 
@@ -436,18 +518,20 @@
         document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
         document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
         modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-        document.getElementById('apply-btn').onclick = () => { localStorage.setItem('standby_v15', JSON.stringify(state)); modal.style.display = 'none'; };
+        document.getElementById('apply-btn').onclick = () => { localStorage.setItem('standby_v17', JSON.stringify(state)); modal.style.display = 'none'; };
         document.querySelectorAll('.preview-card').forEach(card => {
             card.onclick = () => { state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); };
         });
         document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); };
         ['seconds', 'date', 'day'].forEach(k => document.getElementById(`check-${k}`).onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); });
         document.getElementById('wp-input').onchange = (e) => { if (e.target.files[0]) processWP(e.target.files[0]); };
+        
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
             document.getElementById('digital-options').style.display = state.clockStyle === 'digital' ? 'block' : 'none';
             document.getElementById('analogue-faces').style.display = state.clockStyle === 'analogue' ? 'block' : 'none';
         }
+
         init();
     </script>
 </body>
