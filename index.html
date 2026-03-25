@@ -21,9 +21,9 @@
             --padding-edge: 24px;
             --gap: 12px;
             
-            /* Grid Defaults */
-            --lc: 1fr; --lr: 1fr;
-            --pr1: 1fr; --pr2: 1fr;
+            /* Grid Proportion Variables */
+            --lc: 1; --lr: 1;
+            --pr1: 1; --pr2: 1; --pr3: 1;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -32,7 +32,6 @@
         #wallpaper-bg { position: fixed; inset: 0; background-size: cover; background-position: center; z-index: -2; transition: background-image 0.5s; }
         #dark-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: -1; }
 
-        /* Resizable Grid Layout */
         #app-container {
             display: grid;
             width: 100vw;
@@ -42,51 +41,39 @@
 
         @media (orientation: landscape) {
             #app-container {
-                grid-template-columns: var(--lc) var(--gap) 1fr;
-                grid-template-rows: var(--lr) var(--gap) 1fr;
+                grid-template-columns: var(--lc)fr var(--gap) 1fr;
+                grid-template-rows: var(--lr)fr var(--gap) 1fr;
             }
             #clock-widget { grid-column: 1; grid-row: 1 / span 3; }
             #div-v { grid-column: 2; grid-row: 1 / span 3; display: flex; }
             #weather-widget { grid-column: 3; grid-row: 1; }
             #div-h-land { grid-column: 3; grid-row: 2; display: flex; }
             #calendar-widget { grid-column: 3; grid-row: 3; }
-            
             #div-h-port-1, #div-h-port-2 { display: none; }
         }
 
         @media (orientation: portrait) {
             #app-container {
                 grid-template-columns: 1fr;
-                grid-template-rows: var(--pr1) var(--gap) var(--pr2) var(--gap) 1fr;
+                grid-template-rows: var(--pr1)fr var(--gap) var(--pr2)fr var(--gap) var(--pr3)fr;
             }
             #clock-widget { grid-row: 1; }
             #div-h-port-1 { grid-row: 2; display: flex; }
             #weather-widget { grid-row: 3; }
             #div-h-port-2 { grid-row: 4; display: flex; }
             #calendar-widget { grid-row: 5; }
-            
             #div-v, #div-h-land { display: none; }
         }
 
-        /* Divider Styling */
-        .divider {
-            align-items: center; justify-content: center;
-            background: transparent; transition: background 0.2s;
-            position: relative; z-index: 10;
-        }
-        .divider::after {
-            content: ''; background: rgba(255,255,255,0.2);
-            border-radius: 10px; transition: all 0.2s;
-        }
+        /* Divider Handles */
+        .divider { align-items: center; justify-content: center; background: transparent; position: relative; z-index: 10; }
+        .divider::after { content: ''; background: rgba(255,255,255,0.2); border-radius: 10px; transition: all 0.2s; }
         .divider:hover::after, .divider.dragging::after { background: var(--ios-blue); box-shadow: 0 0 10px var(--ios-blue); }
-
         .divider.v { cursor: col-resize; width: var(--gap); }
         .divider.v::after { width: 4px; height: 40px; }
-        
         .divider.h { cursor: row-resize; height: var(--gap); }
         .divider.h::after { width: 40px; height: 4px; }
 
-        /* Widget Styling */
         .widget {
             background: var(--glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border: 1px solid var(--glass-border); border-radius: 32px;
@@ -97,15 +84,15 @@
         #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .digital-time { line-height: 1; text-align: center; font-variant-numeric: tabular-nums; }
 
-        #weather-icon { font-size: 4rem; line-height: 1; }
-        #temp { font-size: 3rem; font-weight: 300; line-height: 1; }
-        #condition { font-size: 1.1rem; opacity: 0.9; margin-bottom: 2px; }
-        #location { font-size: 0.8rem; opacity: 0.5; font-weight: 300; }
+        #weather-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 5px; }
+        #temp { font-size: 3.5rem; font-weight: 300; line-height: 1; }
+        #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
+        #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
 
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 90%; text-align: center; }
-        .day-cell { display: flex; align-items: center; justify-content: center; height: 32px; font-size: 0.85rem; }
-        .day-header { height: 20px; opacity: 0.4; font-weight: bold; font-size: 0.7rem; }
-        .today-circle { background: #fff; color: #000; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
+        .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; font-size: 0.9rem; }
+        .day-header { height: 24px; opacity: 0.4; font-weight: bold; font-size: 0.75rem; }
+        .today-circle { background: #fff; color: #000; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
 
         /* Settings UI */
         #settings-btn { position: fixed; bottom: 25px; right: 25px; background: var(--glass); border: 1px solid var(--glass-border); color: #fff; padding: 14px; border-radius: 50%; font-size: 1.6rem; z-index: 1000; cursor: pointer; }
@@ -116,23 +103,21 @@
         .setting-section { margin-bottom: 25px; }
         .setting-section h3 { font-size: 0.75rem; color: #8e8e93; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
         
-        .slider-wrap { padding: 10px 0; }
-        .slider-labels { display: flex; justify-content: space-between; font-size: 0.7rem; color: #8e8e93; margin-top: 8px; }
-        input[type=range] { width: 100%; height: 6px; border-radius: 5px; background: #39393d; appearance: none; outline: none; }
-        input[type=range]::-webkit-slider-thumb { appearance: none; width: 24px; height: 24px; border-radius: 50%; background: #fff; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-
         .preview-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         .preview-card { background: #2c2c2e; border: 2px solid transparent; border-radius: 14px; padding: 12px; text-align: center; font-size: 0.8rem; cursor: pointer; }
         .preview-card.active { border-color: var(--ios-blue); background: #3a3a3c; }
         
-        .switch { position: relative; width: 48px; height: 26px; display: inline-block; }
+        .toggle-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #38383a; }
+        .switch { position: relative; width: 48px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider-toggle { position: absolute; inset: 0; background-color: #39393d; border-radius: 34px; cursor: pointer; transition: .3s; }
         .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: .3s; }
         input:checked + .slider-toggle { background-color: #34c759; }
         input:checked + .slider-toggle:before { transform: translateX(22px); }
         
-        #wp-status { display: block; margin-top: 8px; font-size: 0.8rem; height: 1rem; color: #34c759; }
+        #wp-status { display: block; margin-top: 8px; font-size: 0.85rem; height: 1.2rem; }
+        .status-success { color: #34c759; font-weight: 600; }
+        #apply-btn { width: 100%; padding: 18px; border-radius: 16px; background: #0a84ff; color: #fff; border: none; font-weight: 600; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -141,22 +126,17 @@
     <div id="dark-overlay"></div>
 
     <div id="app-container">
-        <!-- Widgets -->
         <div class="widget" id="clock-widget"><div id="clock-content"></div></div>
-        
         <div id="div-v" class="divider v"></div>
         <div id="div-h-port-1" class="divider h"></div>
-        
         <div class="widget" id="weather-widget">
             <div id="weather-icon">--</div>
             <div id="temp">--°</div>
             <div id="condition">Locating...</div>
             <div id="location">📍 Detect Location...</div>
         </div>
-
         <div id="div-h-land" class="divider h"></div>
         <div id="div-h-port-2" class="divider h"></div>
-
         <div class="widget" id="calendar-widget">
             <div id="cal-title" style="font-weight:600; margin-bottom:8px; font-size: 1.1rem;">Month</div>
             <div id="cal-grid" class="calendar-grid"></div>
@@ -169,13 +149,11 @@
         <div class="modal-content">
             <button class="modal-close-x" id="modal-cancel">&times;</button>
             <h2 style="margin-top:0">Settings</h2>
-            
             <div class="setting-section">
                 <h3>Wallpaper</h3>
                 <input type="file" id="wp-input" accept="image/*" style="width:100%; color:white;">
                 <span id="wp-status"></span>
             </div>
-
             <div class="setting-section">
                 <h3>Clock Style</h3>
                 <div class="preview-grid">
@@ -183,7 +161,6 @@
                     <div class="preview-card" data-key="clockStyle" data-val="analogue">Analogue</div>
                 </div>
             </div>
-
             <div id="digital-options">
                 <div class="setting-section">
                     <h3>Digital Font</h3>
@@ -192,20 +169,16 @@
                         <div class="preview-card" data-key="font" data-val="Bebas Neue" style="font-family:'Bebas Neue'">Bebas</div>
                     </div>
                 </div>
-
                 <div class="setting-section">
                     <h3>Clock Size</h3>
-                    <div class="slider-wrap">
-                        <input type="range" id="clock-size-slider" min="0" max="2" step="1" value="1">
-                        <div class="slider-labels">
-                            <span>Small</span>
-                            <span>Medium</span>
-                            <span>Large</span>
+                    <div style="padding:10px 0;">
+                        <input type="range" id="clock-size-slider" min="0" max="2" step="1" value="1" style="width:100%;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#8e8e93; margin-top:8px;">
+                            <span>Small</span><span>Medium</span><span>Large</span>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div class="setting-section" id="analogue-faces" style="display:none">
                 <h3>Analogue Face</h3>
                 <div class="preview-grid">
@@ -214,15 +187,13 @@
                     <div class="preview-card" data-key="face" data-val="outlined">Outlined</div>
                 </div>
             </div>
-
             <div class="setting-section">
                 <h3>Display</h3>
                 <div class="toggle-item"><span>Seconds</span><label class="switch"><input type="checkbox" id="check-seconds"><span class="slider-toggle"></span></label></div>
                 <div class="toggle-item"><span>Date</span><label class="switch"><input type="checkbox" id="check-date"><span class="slider-toggle"></span></label></div>
                 <div class="toggle-item"><span>Day</span><label class="switch"><input type="checkbox" id="check-day"><span class="slider-toggle"></span></label></div>
             </div>
-
-            <button id="apply-btn" style="width:100%; padding:18px; border-radius:16px; background:var(--ios-blue); color:#fff; border:none; font-weight:600; margin-top:10px; cursor:pointer;">Apply Changes</button>
+            <button id="apply-btn">Apply Changes</button>
         </div>
     </div>
 
@@ -231,9 +202,13 @@
         let state = {
             clockStyle: 'digital', font: 'Inter', face: 'minimal', clockSize: 'medium',
             showSeconds: true, showDate: true, showDay: true, wallpaper: null,
-            gridL: { c: 1, r: 1 }, gridP: { r1: 1, r2: 1 }
+            gridL: { c: 1, r: 1 }, gridP: { r1: 1, r2: 1, r3: 1 }
         };
 
+        const weatherIcons = {
+            0:'☀️',1:'🌤️',2:'🌤️',3:'🌤️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌦️',56:'🌦️',57:'🌦️',61:'🌦️',63:'🌦️',65:'🌦️',66:'🌦️',67:'🌦️',71:'❄️',73:'❄️',75:'❄️',77:'❄️',80:'🌧️',81:'🌧️',82:'🌧️',95:'⛈️',96:'⛈️',99:'⛈️'
+        };
+        const weatherTexts = { 0:"Clear Sky",1:"Mainly Clear",2:"Partly Cloudy",3:"Overcast",45:"Foggy",48:"Dense Fog",51:"Drizzle",61:"Rainy",71:"Snowy",81:"Showers",95:"Stormy" };
         const fontClamps = {
             small: { l: 'clamp(2rem, 6vw, 5rem)', p: 'clamp(3rem, 12vw, 8rem)' },
             medium: { l: 'clamp(3rem, 10vw, 9rem)', p: 'clamp(4rem, 18vw, 12rem)' },
@@ -244,30 +219,36 @@
         let wakeLock = null;
         async function getWakeLock() {
             if ('wakeLock' in navigator) {
-                try {
-                    if (wakeLock) await wakeLock.release();
-                    wakeLock = await navigator.wakeLock.request('screen');
-                } catch (e) {}
+                try { if (wakeLock) await wakeLock.release(); wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
             }
         }
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') getWakeLock(); });
 
-        /** CLOCK ENGINE **/
+        /** CLOCK & MIDNIGHT REFRESH **/
+        function startClock() {
+            const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); };
+            tick();
+        }
+
+        function scheduleMidnightRefresh() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            setTimeout(() => { updateCalendar(); updateClock(); scheduleMidnightRefresh(); }, tomorrow - now);
+        }
+
+        /** ANALOGUE CANVAS **/
         let clockCanvas, ctx, resizeObserver;
         function drawAnalogue() {
             if (state.clockStyle !== 'analogue') return;
             const content = document.getElementById('clock-content');
             if (!clockCanvas) { clockCanvas = document.createElement('canvas'); ctx = clockCanvas.getContext('2d'); }
             if (!content.contains(clockCanvas)) { content.innerHTML = ''; content.appendChild(clockCanvas); }
-            
             const rect = content.getBoundingClientRect();
             const dpr = window.devicePixelRatio;
             clockCanvas.width = rect.width * dpr; clockCanvas.height = rect.height * dpr;
-            
             const w = clockCanvas.width, h = clockCanvas.height;
             const radius = (Math.min(w, h) / 2) * 0.82;
             ctx.clearRect(0, 0, w, h); ctx.save(); ctx.translate(w / 2, h / 2); ctx.lineCap = 'round';
-
             ctx.save();
             if (state.face === 'outlined') {
                 ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2 * dpr; ctx.stroke();
@@ -278,15 +259,14 @@
                 for (let i = 0; i < 60; i++) { ctx.rotate(Math.PI / 30); ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(0, -radius + (i % 5 === 0 ? 12 : 5) * dpr); ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.5 * dpr; ctx.stroke(); }
             }
             ctx.restore();
-
             const now = new Date();
             const hrs = now.getHours() % 12, mins = now.getMinutes(), secs = now.getSeconds();
-            const drawHand = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
-            drawHand((hrs * Math.PI / 6) + (mins * Math.PI / 360), radius * 0.5, 7 * dpr, '#fff');
-            drawHand((mins * Math.PI / 30) + (secs * Math.PI / 1800), radius * 0.8, 4.5 * dpr, '#fff');
-            if (state.showSeconds) drawHand(secs * Math.PI / 30, radius * 0.9, 2 * dpr, state.face === 'outlined' ? '#fff' : '#ff3b30');
-            ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
-            ctx.restore();
+            const drawHand = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -length); ctx.stroke(); ctx.restore(); };
+            const hL = radius * 0.5, mL = radius * 0.8, sL = radius * 0.9;
+            ctx.save(); ctx.rotate((hrs * Math.PI / 6) + (mins * Math.PI / 360)); ctx.beginPath(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 7 * dpr; ctx.moveTo(0, hL * 0.18); ctx.lineTo(0, -hL); ctx.stroke(); ctx.restore();
+            ctx.save(); ctx.rotate((mins * Math.PI / 30) + (secs * Math.PI / 1800)); ctx.beginPath(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 4.5 * dpr; ctx.moveTo(0, mL * 0.18); ctx.lineTo(0, -mL); ctx.stroke(); ctx.restore();
+            if (state.showSeconds) { ctx.save(); ctx.rotate(secs * Math.PI / 30); ctx.beginPath(); ctx.strokeStyle = state.face === 'outlined' ? '#fff' : '#ff3b30'; ctx.lineWidth = 2 * dpr; ctx.moveTo(0, sL * 0.18); ctx.lineTo(0, -sL); ctx.stroke(); ctx.restore(); }
+            ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
         }
 
         function updateClock() {
@@ -301,66 +281,62 @@
             } else drawAnalogue();
         }
 
-        /** DIVIDER LOGIC **/
+        /** FRACTIONAL GRID LOGIC **/
         function initGridInteraction() {
             const container = document.getElementById('app-container');
             const minSize = 150;
-
-            const handleDrag = (divider, type, callback) => {
+            const handleDrag = (divider, type) => {
                 const onMove = (e) => {
                     const t = e.touches ? e.touches[0] : e;
                     const rect = container.getBoundingClientRect();
-                    const padding = 24;
-                    const gap = 12;
-
+                    const pad = 24, gap = 12;
                     if (type === 'v') {
-                        const x = t.clientX - rect.left - padding;
-                        const totalW = rect.width - (padding * 2) - gap;
+                        const x = t.clientX - rect.left - pad;
+                        const totalW = rect.width - (pad * 2) - gap;
                         if (x > minSize && (totalW - x) > minSize) {
-                            const ratio = x / (totalW - x);
-                            container.style.setProperty('--lc', `${ratio}fr`);
-                            state.gridL.c = ratio;
+                            const ratio = x / (totalW - x); container.style.setProperty('--lc', ratio); state.gridL.c = ratio;
                         }
                     } else if (type === 'h-land') {
-                        const y = t.clientY - rect.top - padding;
-                        const totalH = rect.height - (padding * 2) - gap;
+                        const y = t.clientY - rect.top - pad;
+                        const totalH = rect.height - (pad * 2) - gap;
                         if (y > minSize && (totalH - y) > minSize) {
-                            const ratio = y / (totalH - y);
-                            container.style.setProperty('--lr', `${ratio}fr`);
-                            state.gridL.r = ratio;
+                            const ratio = y / (totalH - y); container.style.setProperty('--lr', ratio); state.gridL.r = ratio;
                         }
-                    } else if (type === 'h-p1') {
-                        const y = t.clientY - rect.top - padding;
-                        const totalH = rect.height - (padding * 2) - (gap * 2);
-                        // Approximate logic for 3 rows
-                        const r1 = Math.max(minSize, y);
-                        container.style.setProperty('--pr1', `${r1}px`);
-                        state.gridP.r1 = r1;
-                    } else if (type === 'h-p2') {
-                        const r1 = parseInt(getComputedStyle(container).getPropertyValue('--pr1')) || minSize;
-                        const y = t.clientY - rect.top - padding - r1 - gap;
-                        container.style.setProperty('--pr2', `${Math.max(minSize, y)}px`);
-                        state.gridP.r2 = Math.max(minSize, y);
+                    } else if (type === 'h-p1' || type === 'h-p2') {
+                        const totalH = rect.height - (pad * 2) - (gap * 2);
+                        const y = t.clientY - rect.top - pad;
+                        if (type === 'h-p1') {
+                            const r1 = Math.max(minSize, y);
+                            const r23 = totalH - r1;
+                            if (r23 > minSize * 2) {
+                                state.gridP.r1 = r1 / totalH;
+                                container.style.setProperty('--pr1', state.gridP.r1);
+                            }
+                        } else {
+                            const r1h = (parseFloat(getComputedStyle(container).getPropertyValue('--pr1')) || 0.33) * totalH;
+                            const r2 = Math.max(minSize, y - r1h - gap);
+                            const r3 = totalH - r1h - r2;
+                            if (r3 > minSize) {
+                                state.gridP.r2 = r2 / totalH;
+                                state.gridP.r3 = r3 / totalH;
+                                container.style.setProperty('--pr2', state.gridP.r2);
+                                container.style.setProperty('--pr3', state.gridP.r3);
+                            }
+                        }
                     }
                 };
                 const onEnd = () => {
                     divider.classList.remove('dragging');
-                    window.removeEventListener('mousemove', onMove);
-                    window.removeEventListener('mouseup', onEnd);
-                    window.removeEventListener('touchmove', onMove);
-                    window.removeEventListener('touchend', onEnd);
-                    localStorage.setItem('standby_v14', JSON.stringify(state));
+                    window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onEnd);
+                    window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd);
+                    localStorage.setItem('standby_v15', JSON.stringify(state));
                 };
                 divider.onmousedown = divider.ontouchstart = (e) => {
-                    e.preventDefault();
-                    divider.classList.add('dragging');
-                    window.addEventListener('mousemove', onMove);
-                    window.addEventListener('mouseup', onEnd);
-                    window.addEventListener('touchmove', onMove, { passive: false });
-                    window.addEventListener('touchend', onEnd);
+                    e.preventDefault(); divider.classList.add('dragging');
+                    window.addEventListener('mousemove', onMove); window.addEventListener('mouseup', onEnd);
+                    window.addEventListener('touchmove', onMove, { passive: false }); window.addEventListener('touchend', onEnd);
                 };
             };
-
             handleDrag(document.getElementById('div-v'), 'v');
             handleDrag(document.getElementById('div-h-land'), 'h-land');
             handleDrag(document.getElementById('div-h-port-1'), 'h-p1');
@@ -371,19 +347,19 @@
         async function fetchWeather() {
             if (!navigator.geolocation) return;
             navigator.geolocation.getCurrentPosition(async (pos) => {
+                const { latitude, longitude } = pos.coords;
                 try {
-                    const { latitude, longitude } = pos.coords;
                     const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
                     const d = await res.json();
+                    const code = d.current_weather.weathercode;
                     document.getElementById('temp').textContent = Math.round(d.current_weather.temperature) + '°';
-                    const icons = { 0:'☀️',1:'🌤️',45:'🌫️',51:'🌦️',71:'❄️',80:'🌧️',95:'⛈️' };
-                    document.getElementById('weather-icon').textContent = icons[d.current_weather.weathercode] || '🌤️';
-                    document.getElementById('condition').textContent = d.current_weather.weathercode < 3 ? "Clear" : "Overcast";
+                    document.getElementById('condition').textContent = weatherTexts[code] || "Overcast";
+                    document.getElementById('weather-icon').textContent = weatherIcons[code] || '🌤️';
                     const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&email=standby@app.local`);
                     const g = await geo.json();
                     document.getElementById('location').textContent = `📍 ${g.address.city || g.address.town || "Nearby"}`;
                 } catch (e) {}
-            });
+            }, () => { document.getElementById('condition').textContent = "Location Denied"; document.getElementById('weather-icon').textContent = "🌡️"; });
         }
 
         function updateCalendar() {
@@ -397,37 +373,62 @@
             for (let d = 1; d <= days; d++) grid.innerHTML += `<div class="day-cell">${d === now.getDate() ? `<div class="today-circle">${d}</div>` : d}</div>`;
         }
 
-        /** INIT **/
+        /** TIERED WALLPAPER AUTO-SAVE **/
+        function trySaveWP(data) {
+            try {
+                const test = { ...state, wallpaper: data };
+                localStorage.setItem('standby_v15', JSON.stringify(test));
+                state.wallpaper = data;
+                document.getElementById('wallpaper-bg').style.backgroundImage = `url(${data})`;
+                const s = document.getElementById('wp-status'); s.textContent = "✓ Saved"; s.className = "status-success";
+                setTimeout(() => s.textContent = "", 2000);
+                return true;
+            } catch (e) { return false; }
+        }
+
+        async function processWP(file) {
+            const r = new FileReader();
+            r.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const run = (mW, q) => {
+                        const c = document.createElement('canvas'); let w = img.width, h = img.height;
+                        if (w > mW) { h *= mW/w; w = mW; }
+                        c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+                        return c.toDataURL('image/jpeg', q);
+                    };
+                    if (!trySaveWP(run(1280, 0.75))) {
+                        if (!trySaveWP(run(1280, 0.5))) {
+                            if (!trySaveWP(run(800, 0.5))) alert("Storage full.");
+                        }
+                    }
+                };
+                img.src = ev.target.result;
+            };
+            r.readAsDataURL(file);
+        }
+
         function init() {
-            const saved = localStorage.getItem('standby_v14');
+            const saved = localStorage.getItem('standby_v15');
             if (saved) {
                 state = { ...state, ...JSON.parse(saved) };
                 const root = document.documentElement;
-                root.style.setProperty('--lc', `${state.gridL.c}fr`);
-                root.style.setProperty('--lr', `${state.gridL.r}fr`);
-                root.style.setProperty('--pr1', isNaN(state.gridP.r1) ? '1fr' : `${state.gridP.r1}px`);
-                root.style.setProperty('--pr2', isNaN(state.gridP.r2) ? '1fr' : `${state.gridP.r2}px`);
+                root.style.setProperty('--lc', state.gridL.c); root.style.setProperty('--lr', state.gridL.r);
+                root.style.setProperty('--pr1', state.gridP.r1); root.style.setProperty('--pr2', state.gridP.r2); root.style.setProperty('--pr3', state.gridP.r3 || 1);
             }
             if (state.wallpaper) document.getElementById('wallpaper-bg').style.backgroundImage = `url(${state.wallpaper})`;
             document.getElementById('check-seconds').checked = state.showSeconds;
             document.getElementById('check-date').checked = state.showDate;
             document.getElementById('check-day').checked = state.showDay;
             document.getElementById('clock-size-slider').value = sizes.indexOf(state.clockSize);
-
-            updateActiveCards();
-            updateCalendar();
-            fetchWeather();
-            initGridInteraction();
-            getWakeLock();
-            
-            const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); };
-            tick();
+            updateActiveCards(); updateCalendar(); fetchWeather(); setInterval(fetchWeather, 600000);
+            initGridInteraction(); getWakeLock(); startClock(); scheduleMidnightRefresh();
         }
 
         window.addEventListener('orientationchange', () => {
             const root = document.documentElement;
-            root.style.setProperty('--lc', '1fr'); root.style.setProperty('--lr', '1fr');
-            root.style.setProperty('--pr1', '1fr'); root.style.setProperty('--pr2', '1fr');
+            root.style.setProperty('--lc', 1); root.style.setProperty('--lr', 1);
+            root.style.setProperty('--pr1', 1); root.style.setProperty('--pr2', 1); root.style.setProperty('--pr3', 1);
             setTimeout(updateClock, 200);
         });
 
@@ -435,46 +436,18 @@
         document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
         document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
         modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-        document.getElementById('apply-btn').onclick = () => { localStorage.setItem('standby_v14', JSON.stringify(state)); modal.style.display = 'none'; };
-        
+        document.getElementById('apply-btn').onclick = () => { localStorage.setItem('standby_v15', JSON.stringify(state)); modal.style.display = 'none'; };
         document.querySelectorAll('.preview-card').forEach(card => {
             card.onclick = () => { state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); };
         });
-
-        document.getElementById('clock-size-slider').oninput = (e) => {
-            state.clockSize = sizes[e.target.value];
-            updateClock();
-        };
-
+        document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); };
         ['seconds', 'date', 'day'].forEach(k => document.getElementById(`check-${k}`).onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); });
-        
-        document.getElementById('wp-input').onchange = (e) => {
-            const r = new FileReader();
-            r.onload = (ev) => {
-                const img = new Image();
-                img.onload = () => {
-                    const c = document.createElement('canvas');
-                    let w = img.width, h = img.height;
-                    if (w > 1280) { h *= 1280/w; w = 1280; }
-                    c.width = w; c.height = h;
-                    c.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const data = c.toDataURL('image/jpeg', 0.75);
-                    state.wallpaper = data;
-                    document.getElementById('wallpaper-bg').style.backgroundImage = `url(${data})`;
-                    localStorage.setItem('standby_v14', JSON.stringify(state));
-                    document.getElementById('wp-status').textContent = "✓ Saved";
-                };
-                img.src = ev.target.result;
-            };
-            r.readAsDataURL(e.target.files[0]);
-        };
-
+        document.getElementById('wp-input').onchange = (e) => { if (e.target.files[0]) processWP(e.target.files[0]); };
         function updateActiveCards() {
             document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
             document.getElementById('digital-options').style.display = state.clockStyle === 'digital' ? 'block' : 'none';
             document.getElementById('analogue-faces').style.display = state.clockStyle === 'analogue' ? 'block' : 'none';
         }
-
         init();
     </script>
 </body>
