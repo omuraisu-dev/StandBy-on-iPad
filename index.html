@@ -54,45 +54,30 @@
         .divider { display: flex; align-items: center; justify-content: center; background: transparent; position: relative; z-index: 10; touch-action: none; }
         .divider::after { content: ''; background: #fff; border-radius: 10px; transition: all 0.2s; opacity: 0.25; }
         .divider:hover::after, .divider.dragging::after { background: var(--ios-blue); box-shadow: 0 0 12px var(--ios-blue); opacity: 1; }
-        .divider.v { cursor: col-resize; width: var(--gap); } .divider.v::after { width: 4px; height: 40px; }
-        .divider.h { cursor: row-resize; height: var(--gap); } .divider.h::after { width: 40px; height: 4px; }
+        .divider.v { cursor: col-resize; width: var(--gap); } 
+        .divider.v::after { width: 4px; height: 40px; }
+        .divider.h { cursor: row-resize; height: var(--gap); } 
+        .divider.h::after { width: 40px; height: 4px; }
 
         .widget {
             background: var(--glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
             border: 1px solid var(--glass-border); border-radius: 32px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); overflow: hidden;
-            transition: flex-direction 0.4s ease;
         }
 
-        /* CLOCK STACKING */
         #clock-content { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .time-wrapper { display: flex; align-items: center; justify-content: center; gap: 4px; }
-        .clock-vertical .time-wrapper { flex-direction: column; gap: 0; }
-        .clock-vertical .time-separator { display: none; }
-
-        .digital-time { line-height: 0.9; text-align: center; font-variant-numeric: tabular-nums; font-size: var(--font-clamp-normal); }
+        .digital-time { line-height: 1; text-align: center; font-variant-numeric: tabular-nums; font-size: var(--font-clamp-normal); }
         
         #clock-widget.h-lt-200 .date-info { display: none !important; }
         #clock-widget.h-lt-200 .digital-time, #clock-widget.w-lt-250 .digital-time { font-size: var(--font-clamp-reduced) !important; }
+        #clock-widget.w-lt-250 .digital-seconds { display: none !important; }
         #clock-widget.gt-400 .date-info { margin-top: 16px; font-weight: 400; opacity: 0.8; }
 
-        /* WEATHER SIDEWAYS */
-        #weather-widget.sideways { flex-direction: row !important; gap: 30px; }
-        #weather-widget.sideways #weather-icon { margin-bottom: 0; }
-        #weather-info-block { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #weather-widget.sideways #weather-info-block { align-items: flex-start; }
-
-        #weather-icon { font-size: 4.5rem; line-height: 1; margin-bottom: 5px; transition: font-size 0.2s; }
-        #temp { font-size: 3.5rem; font-weight: 300; line-height: 1; }
-        #condition { font-size: 1.2rem; opacity: 0.9; margin-bottom: 4px; }
-        #location { font-size: 0.9rem; opacity: 0.6; font-weight: 300; letter-spacing: 0.5px; }
-
-        /* CALENDAR */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; width: 95%; text-align: center; font-size: 0.9rem; }
-        .day-cell { display: flex; align-items: center; justify-content: center; height: 36px; }
-        .day-header { height: 24px; opacity: 0.4; font-weight: bold; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; }
-        .today-circle { background: var(--accent-color); color: #fff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
+        .day-cell { display: flex; align-items: center; justify-content: center; transition: height 0.2s ease; }
+        .day-header { opacity: 0.4; font-weight: bold; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; transition: height 0.2s ease; }
+        .today-circle { background: var(--accent-color); color: #fff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 600; transition: width 0.2s, height 0.2s; }
 
         #calendar-widget.h-lt-220 #cal-title { display: none !important; }
         #calendar-widget.h-lt-150 .day-header { display: none !important; }
@@ -133,11 +118,9 @@
         <div id="div-h-port-1" class="divider h"></div>
         <div class="widget" id="weather-widget">
             <div id="weather-icon">--</div>
-            <div id="weather-info-block">
-                <div id="temp">--°</div>
-                <div id="condition">Locating...</div>
-                <div id="location">📍 Detecting...</div>
-            </div>
+            <div id="temp">--°</div>
+            <div id="condition">Locating...</div>
+            <div id="location">📍 Detect Location...</div>
         </div>
         <div id="div-h-land" class="divider h"></div>
         <div id="div-h-port-2" class="divider h"></div>
@@ -169,7 +152,7 @@
             </div>
 
             <div class="setting-section">
-                <h3>Content Scale</h3>
+                <h3>Content Scale (Weather & Calendar)</h3>
                 <div style="padding:10px 0;">
                     <input type="range" id="content-scale-slider" min="0" max="4" step="1" value="2" style="width:100%;">
                     <div style="display:flex; justify-content:space-between; font-size:0.6rem; color:#8e8e93; margin-top:8px;">
@@ -213,6 +196,7 @@
                 <div class="toggle-item"><span>Date</span><label class="switch"><input type="checkbox" id="check-date"><span class="slider-toggle"></span></label></div>
                 <div class="toggle-item"><span>Day</span><label class="switch"><input type="checkbox" id="check-day"><span class="slider-toggle"></span></label></div>
             </div>
+            <p style="text-align:center; color:#8e8e93; font-size:0.7rem; margin-top:20px; opacity:0.5;">Settings save automatically.</p>
         </div>
     </div>
 
@@ -224,16 +208,16 @@
         const canvasSizeMap = { xs: 0.6, small: 0.8, medium: 1.0, large: 1.2, xl: 1.5 };
 
         const auroraThemes = [
-            { colors: ['#00ffd5', '#1de9b6', '#2979ff', '#651fff'] },
-            { colors: ['#ff6d00', '#f50057', '#ff1744', '#d500f9'] },
-            { colors: ['#01579b', '#00bcd4', '#006064', '#0d47a1'] },
-            { colors: ['#4a148c', '#7b1fa2', '#c51162', '#1a237e'] },
-            { colors: ['#1b5e20', '#c6ff00', '#00695c', '#558b2f'] },
-            { colors: ['#ff3d00', '#ff9100', '#ffea00', '#b71c1c'] },
-            { colors: ['#f06292', '#b388ff', '#81d4fa', '#ce93d8'] },
-            { colors: ['#1a237e', '#0d47a1', '#000000', '#455a64'] },
-            { colors: ['#e91e63', '#ffc107', '#ff8a65', '#f8bbd0'] },
-            { colors: ['#ffffff', '#e0e0e0', '#9e9e9e', '#696969'] }
+            { name: "Northern Lights", colors: ['#00ffd5', '#1de9b6', '#2979ff', '#651fff'] },
+            { name: "Sunset", colors: ['#ff6d00', '#f50057', '#ff1744', '#d500f9'] },
+            { name: "Ocean Deep", colors: ['#01579b', '#00bcd4', '#006064', '#0d47a1'] },
+            { name: "Galaxy", colors: ['#4a148c', '#7b1fa2', '#c51162', '#1a237e'] },
+            { name: "Forest", colors: ['#1b5e20', '#c6ff00', '#00695c', '#558b2f'] },
+            { name: "Fire", colors: ['#ff3d00', '#ff9100', '#ffea00', '#b71c1c'] },
+            { name: "Cotton Candy", colors: ['#f06292', '#b388ff', '#81d4fa', '#ce93d8'] },
+            { name: "Midnight", colors: ['#1a237e', '#0d47a1', '#000000', '#455a64'] },
+            { name: "Rose Gold", colors: ['#e91e63', '#ffc107', '#ff8a65', '#f8bbd0'] },
+            { name: "Monochrome", colors: ['#ffffff', '#e0e0e0', '#9e9e9e', '#696969'] }
         ];
 
         let state = {
@@ -254,40 +238,66 @@
 
         const persist = () => localStorage.setItem('standby_v27', JSON.stringify(state));
         const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-        const applyScaleToClamp = (c, m) => c.replace(/(\d*\.?\d+)(rem|px)/g, (match, n, u) => (parseFloat(n) * m).toFixed(2) + u);
 
-        /** AURORA **/
-        let auroraCanvas, aCtx, blobs = [];
+        /** AURORA ENGINE **/
+        let auroraCanvas, aCtx, auroraReq;
+        let blobs = [];
+
+        function resizeAurora() { 
+            if(!auroraCanvas) return; 
+            auroraCanvas.width = Math.max(1, window.innerWidth); 
+            auroraCanvas.height = Math.max(1, window.innerHeight); 
+        }
+
         function initAurora() {
             auroraCanvas = document.getElementById('aurora-canvas');
             aCtx = auroraCanvas.getContext('2d');
+            window.addEventListener('resize', resizeAurora);
             resizeAurora();
-            for(let i=0; i<6; i++) blobs.push({ x: Math.random() * 2000, y: Math.random() * 2000, r: Math.random() * 400 + 400, phase: Math.random() * Math.PI * 2, speed: 0.0003 + Math.random() * 0.0005 });
+            blobs = [];
+            for(let i=0; i<6; i++) {
+                blobs.push({ x: Math.random() * 2000, y: Math.random() * 2000, r: Math.random() * 400 + 400, phase: Math.random() * Math.PI * 2, speed: 0.0003 + Math.random() * 0.0005 });
+            }
             animateAurora();
         }
-        function resizeAurora() { if(auroraCanvas) { auroraCanvas.width = window.innerWidth; auroraCanvas.height = window.innerHeight; } }
+
         function animateAurora() {
-            if (auroraCanvas.width === 0) resizeAurora();
+            if (auroraCanvas.width === 0 || auroraCanvas.height === 0) resizeAurora();
             const w = auroraCanvas.width, h = auroraCanvas.height, time = Date.now(), theme = auroraThemes[state.auroraTheme].colors;
             aCtx.globalAlpha = 1; aCtx.fillStyle = '#000'; aCtx.fillRect(0, 0, w, h);
             blobs.forEach((b, i) => {
-                const color = theme[i % theme.length], driftX = Math.sin(time * b.speed + b.phase) * (w * 0.3), driftY = Math.cos(time * b.speed * 0.8 + b.phase) * (h * 0.3);
-                const curX = (b.x % w) + driftX, curY = (b.y % h) + driftY;
+                const color = theme[i % theme.length];
+                const driftX = Math.sin(time * b.speed + b.phase) * (w * 0.3);
+                const driftY = Math.cos(time * b.speed * 0.8 + b.phase) * (h * 0.3);
+                const curX = (b.x % w) + driftX; const curY = (b.y % h) + driftY;
                 const grad = aCtx.createRadialGradient(curX, curY, 0, curX, curY, b.r);
                 grad.addColorStop(0, color); grad.addColorStop(1, 'transparent');
                 aCtx.globalAlpha = 0.45; aCtx.fillStyle = grad; aCtx.beginPath(); aCtx.arc(curX, curY, b.r, 0, Math.PI * 2); aCtx.fill();
             });
-            aCtx.globalAlpha = 1; requestAnimationFrame(animateAurora);
+            aCtx.globalAlpha = 1; auroraReq = requestAnimationFrame(animateAurora);
         }
 
-        /** CLOCK **/
+        /** GRID & CLOCK RENDERING **/
+        function applyGrid() {
+            const container = document.getElementById('app-container');
+            const isLand = window.matchMedia("(orientation: landscape)").matches;
+            if (isLand) {
+                container.style.gridTemplateColumns = `${state.gridL.c}fr 20px 1fr`;
+                container.style.gridTemplateRows = `${state.gridL.r}fr 20px 1fr`;
+            } else {
+                container.style.gridTemplateColumns = `1fr`;
+                container.style.gridTemplateRows = `${state.gridP.r1}fr 20px ${state.gridP.r2}fr 20px ${state.gridP.r3}fr`;
+            }
+        }
+
         let clockCanvas, ctx;
         function drawAnalogue() {
             if (state.clockStyle !== 'analogue' && state.clockStyle !== 'square') return;
             const content = document.getElementById('clock-content');
             if (!clockCanvas) { clockCanvas = document.createElement('canvas'); ctx = clockCanvas.getContext('2d'); }
             if (!content.contains(clockCanvas)) { content.innerHTML = ''; content.appendChild(clockCanvas); }
-            const rect = content.getBoundingClientRect(), dpr = window.devicePixelRatio, sizeMult = canvasSizeMap[state.clockSize];
+            const rect = content.getBoundingClientRect(), dpr = window.devicePixelRatio;
+            const sizeMult = canvasSizeMap[state.clockSize];
             clockCanvas.width = rect.width * dpr; clockCanvas.height = rect.height * dpr;
             const radius = (Math.min(clockCanvas.width, clockCanvas.height) / 2) * 0.82 * sizeMult;
             ctx.clearRect(0, 0, clockCanvas.width, clockCanvas.height); ctx.save(); ctx.translate(clockCanvas.width / 2, clockCanvas.height / 2); ctx.lineCap = 'round';
@@ -312,52 +322,62 @@
                 ctx.lineTo(-radius, -radius + r); ctx.quadraticCurveTo(-radius, -radius, -radius + r, -radius);
                 ctx.stroke();
                 for (let i = 0; i < 60; i++) {
-                    const angle = (i * Math.PI / 30), dist = radius / Math.max(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle))), len = i % 5 === 0 ? 18 * dpr : 8 * dpr;
-                    ctx.beginPath(); ctx.moveTo(Math.sin(angle) * dist, -Math.cos(angle) * dist); ctx.lineTo(Math.sin(angle) * (dist - len), -Math.cos(angle) * (dist - len));
-                    ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)'; ctx.lineWidth = 2 * dpr; ctx.stroke();
+                    const angle = (i * Math.PI / 30);
+                    const dist = radius / Math.max(Math.abs(Math.cos(angle)), Math.abs(Math.sin(angle)));
+                    const len = i % 5 === 0 ? 18 * dpr : 8 * dpr;
+                    ctx.beginPath(); ctx.moveTo(Math.sin(angle) * dist, -Math.cos(angle) * dist);
+                    ctx.lineTo(Math.sin(angle) * (dist - len), -Math.cos(angle) * (dist - len));
+                    ctx.strokeStyle = i % 5 === 0 ? '#fff' : 'rgba(255,255,255,0.3)';
+                    ctx.lineWidth = 2 * dpr; ctx.stroke();
                 }
             }
             const hL = radius * 0.5, mL = radius * 0.85, sL = radius * 0.95;
-            const dh = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
-            dh((hrs * Math.PI / 6) + (mins * Math.PI / 360), hL, 7 * dpr, '#fff'); dh((mins * Math.PI / 30) + (secs * Math.PI / 1800), mL, 4.5 * dpr, '#fff');
-            if (state.showSeconds) dh(secs * Math.PI / 30, sL, 2 * dpr, (state.clockStyle === 'square') ? '#fff' : (state.face === 'outlined' ? '#fff' : '#ff3b30'));
+            const hand = (ang, len, wid, col) => { ctx.save(); ctx.rotate(ang); ctx.beginPath(); ctx.strokeStyle = col; ctx.lineWidth = wid; ctx.moveTo(0, len * 0.18); ctx.lineTo(0, -len); ctx.stroke(); ctx.restore(); };
+            hand((hrs * Math.PI / 6) + (mins * Math.PI / 360), hL, 7 * dpr, '#fff');
+            hand((mins * Math.PI / 30) + (secs * Math.PI / 1800), mL, 4.5 * dpr, '#fff');
+            if (state.showSeconds) hand(secs * Math.PI / 30, sL, 2 * dpr, (state.clockStyle === 'square' || state.face === 'outlined') ? '#fff' : '#ff3b30');
             ctx.beginPath(); ctx.arc(0, 0, 5 * dpr, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
         }
 
         function updateClock() {
-            const isLand = window.matchMedia("(orientation: landscape)").matches, mult = scaleMap[state.contentScale], root = document.documentElement;
-            root.style.setProperty('--content-scale-mult', mult);
+            const isLand = window.matchMedia("(orientation: landscape)").matches;
+            const root = document.documentElement;
             root.style.setProperty('--font-clamp-normal', isLand ? fontClamps[state.clockSize].l : fontClamps[state.clockSize].p);
-            root.style.setProperty('--font-clamp-reduced', isLand ? fontClamps[sizes[Math.max(0, sizes.indexOf(state.clockSize)-1)]].l : fontClamps[sizes[sizes.indexOf(state.clockSize)-1]]?.p || '2rem');
-            
+            const redIdx = Math.max(0, sizes.indexOf(state.clockSize) - 1);
+            root.style.setProperty('--font-clamp-reduced', isLand ? fontClamps[sizes[redIdx]].l : fontClamps[sizes[redIdx]].p);
+
             const container = document.getElementById('clock-content');
             if (state.clockStyle === 'digital') {
-                const now = new Date(), h = String(now.getHours()).padStart(2,'0'), m = String(now.getMinutes()).padStart(2,'0'), s = state.showSeconds ? `<span class="digital-seconds" style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
-                container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'"><div class="time-wrapper"><span>${h}</span><span class="time-separator">:</span><span>${m}</span>${s}</div></div>` +
+                const now = new Date();
+                const s = state.showSeconds ? `<span class="digital-seconds" style="font-size:0.5em; opacity:0.4">:${String(now.getSeconds()).padStart(2,'0')}</span>` : '';
+                container.innerHTML = `<div class="digital-time" style="font-family:'${state.font}'">${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}${s}</div>` +
                 ((state.showDate || state.showDay) ? `<div class="date-info" style="font-size:1.4rem; opacity:0.8; margin-top:8px; font-weight:300;">${state.showDay ? now.toLocaleDateString('en-US',{weekday:'long'}) : ''}${state.showDay && state.showDate ? ', ':''}${state.showDate ? now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) : ''}</div>` : '');
             } else { drawAnalogue(); }
         }
 
-        /** WEATHER & GRID **/
-        function applyGrid() {
-            const container = document.getElementById('app-container'), isLand = window.matchMedia("(orientation: landscape)").matches;
-            if (isLand) { container.style.gridTemplateColumns = `${state.gridL.c}fr 20px 1fr`; container.style.gridTemplateRows = `${state.gridL.r}fr 20px 1fr`; }
-            else { container.style.gridTemplateColumns = `1fr`; container.style.gridTemplateRows = `${state.gridP.r1}fr 20px ${state.gridP.r2}fr 20px ${state.gridP.r3}fr`; }
-        }
-
+        /** WEATHER & CALENDAR SCALING **/
         function updateWeatherScaling(el, w, h) {
-            const m = scaleMap[state.contentScale], s = Math.min(w / 350, h / 280) * m;
-            const isWide = w > (h * 1.5);
-            el.classList.toggle('sideways', isWide);
+            const m = scaleMap[state.contentScale];
+            const s = Math.min(w / 350, h / 280) * m;
             const icon = el.querySelector('#weather-icon'), temp = el.querySelector('#temp'), cond = el.querySelector('#condition'), loc = el.querySelector('#location');
             if(!icon) return;
-            icon.style.fontSize = `clamp(1.5rem, ${4.5 * s}rem, 8rem)`;
-            icon.style.marginBottom = isWide ? '0' : `clamp(2px, ${8 * s}px, 16px)`;
+            icon.style.fontSize = `clamp(1.5rem, ${4.5 * s}rem, 8rem)`; icon.style.marginBottom = `clamp(2px, ${8 * s}px, 16px)`;
             temp.style.fontSize = `clamp(1.2rem, ${3.5 * s}rem, 7rem)`;
-            cond.style.fontSize = `clamp(0.6rem, ${1.2 * s}rem, 2rem)`;
+            cond.style.fontSize = `clamp(0.6rem, ${1.2 * s}rem, 2rem)`; cond.style.marginBottom = `clamp(2px, ${8 * s}px, 16px)`;
             loc.style.fontSize = `clamp(0.5rem, ${0.85 * s}rem, 1.4rem)`;
-            loc.style.display = s < 0.5 ? 'none' : 'block';
-            cond.style.display = s < 0.35 ? 'none' : 'block';
+            loc.style.display = s < 0.5 ? 'none' : 'block'; cond.style.display = s < 0.35 ? 'none' : 'block';
+        }
+
+        function updateCalendarScaling(el, w, h) {
+            const m = scaleMap[state.contentScale];
+            let bCH = 36, bHH = 24, bC = 32;
+            if (w > 400) { bCH = 48; bC = 40; } else if (w < 280) { bCH = 20; bHH = 16; bC = 22; }
+            el.querySelectorAll('.day-cell').forEach(c => c.style.height = (bCH * m) + 'px');
+            el.querySelectorAll('.day-header').forEach(h => h.style.height = (bHH * m) + 'px');
+            const circle = el.querySelector('.today-circle');
+            if (circle) circle.style.width = circle.style.height = (bC * m) + 'px';
+            const grid = el.querySelector('#cal-grid');
+            if (grid) grid.style.fontSize = (0.9 * m) + 'rem';
         }
 
         async function fetchWeather() {
@@ -374,7 +394,7 @@
                     const g = await geoRes.json();
                     document.getElementById('location').textContent = `📍 ${g.address.city || g.address.town || "Nearby"}`;
                 } catch (e) {}
-            });
+            }, () => { document.getElementById('condition').textContent = "Denied"; });
         }
 
         function updateCalendar() {
@@ -383,43 +403,27 @@
             const first = new Date(now.getFullYear(), now.getMonth(), 1).getDay(), days = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate(), grid = document.getElementById('cal-grid'); 
             grid.innerHTML = ''; ['S','M','T','W','T','F','S'].forEach(d => grid.innerHTML += `<div class="day-header">${d}</div>`);
             for (let i = 0; i < first; i++) grid.innerHTML += `<div class="day-cell"></div>`;
-            for (let d = 1; d <= days; d++) grid.innerHTML += `<div class="day-cell">${d === now.getDate() ? `<div class="today-circle">${d}</div>` : d}</div>`;
+            for (let d = 1; d <= days; d++) {
+                const isToday = d === now.getDate();
+                grid.innerHTML += `<div class="day-cell">${isToday ? `<div class="today-circle">${d}</div>` : d}</div>`;
+            }
+            const calX = document.getElementById('calendar-widget'), cr = calX.getBoundingClientRect();
+            updateCalendarScaling(calX, cr.width, cr.height);
         }
 
-        /** INIT **/
-        function init() {
-            const saved = localStorage.getItem('standby_v27');
-            if (saved) state = { ...state, ...JSON.parse(saved) };
-            initAurora();
-            const themeGrid = document.getElementById('theme-grid');
-            auroraThemes.forEach((t, i) => {
-                const c = document.createElement('div'); c.className = 'theme-circle';
-                c.style.background = `radial-gradient(circle, ${t.colors[0]} 0%, ${t.colors[1]} 100%)`;
-                c.onclick = () => { state.auroraTheme = i; updateActiveCards(); persist(); };
-                themeGrid.appendChild(c);
-            });
-            const modal = document.getElementById('settings-modal');
-            document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
-            document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
-            modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
-            document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); persist(); });
-            document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); persist(); };
-            document.getElementById('content-scale-slider').oninput = (e) => { state.contentScale = scaleKeys[e.target.value]; updateClock(); updateWeatherScaling(document.getElementById('weather-widget'), document.getElementById('weather-widget').offsetWidth, document.getElementById('weather-widget').offsetHeight); persist(); };
-            ['seconds', 'date', 'day'].forEach(k => {
-                const el = document.getElementById(`check-${k}`);
-                el.checked = state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`];
-                el.onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); persist(); };
-            });
-            const container = document.getElementById('app-container');
+        /** INTERACTION **/
+        function initGridInteraction() {
+            const container = document.getElementById('app-container'), minPx = 150;
             const handleDrag = (div, type) => {
                 const onMove = (e) => {
+                    if (e.touches && e.touches.length === 0) return;
                     const t = e.touches ? e.touches[0] : e, r = container.getBoundingClientRect(), p = 24, g = 20;
-                    if (type === 'v') state.gridL.c = Math.max(150, Math.min(r.width - p*2 - g - 150, t.clientX - r.left - p)) / (r.width - p*2 - g - Math.max(150, Math.min(r.width - p*2 - g - 150, t.clientX - r.left - p)));
-                    else if (type === 'h-land') state.gridL.r = Math.max(150, Math.min(r.height - p*2 - g - 150, t.clientY - r.top - p)) / (r.height - p*2 - g - Math.max(150, Math.min(r.height - p*2 - g - 150, t.clientY - r.top - p)));
+                    if (type === 'v') state.gridL.c = Math.max(minPx, Math.min(r.width - p*2 - g - minPx, t.clientX - r.left - p)) / (r.width - p*2 - g - Math.max(minPx, Math.min(r.width - p*2 - g - minPx, t.clientX - r.left - p)));
+                    else if (type === 'h-land') state.gridL.r = Math.max(minPx, Math.min(r.height - p*2 - g - minPx, t.clientY - r.top - p)) / (r.height - p*2 - g - Math.max(minPx, Math.min(r.height - p*2 - g - minPx, t.clientY - r.top - p)));
                     else {
                         const h = r.height - p*2 - g*2, y = t.clientY - r.top - p;
-                        if (type === 'h-p1') { const r1 = Math.max(150, Math.min(h - 300, y)); state.gridP.r1 = r1 / (h/3); state.gridP.r2 = ((h - r1) / 2) / (h/3); state.gridP.r3 = state.gridP.r2; }
-                        else { const r1Px = state.gridP.r1 * (h/3), r2 = Math.max(150, Math.min(h - r1Px - 150, y - r1Px - g)); state.gridP.r2 = r2 / (h/3); state.gridP.r3 = (h - r1Px - r2) / (h/3); }
+                        if (type === 'h-p1') { const r1 = Math.max(minPx, Math.min(h - 300, y)); state.gridP.r1 = r1 / (h/3); state.gridP.r2 = ((h - r1) / 2) / (h/3); state.gridP.r3 = state.gridP.r2; }
+                        else { const r1Px = state.gridP.r1 * (h/3), r2 = Math.max(minPx, Math.min(h - r1Px - minPx, y - r1Px - g)); state.gridP.r2 = r2 / (h/3); state.gridP.r3 = (h - r1Px - r2) / (h/3); }
                     }
                     applyGrid(); if (e.cancelable) e.preventDefault();
                 };
@@ -429,23 +433,79 @@
             };
             handleDrag(document.getElementById('div-v'), 'v'); handleDrag(document.getElementById('div-h-land'), 'h-land');
             handleDrag(document.getElementById('div-h-port-1'), 'h-p1'); handleDrag(document.getElementById('div-h-port-2'), 'h-p2');
+        }
+
+        /** INIT **/
+        function init() {
+            const saved = localStorage.getItem('standby_v27');
+            if (saved) state = { ...state, ...JSON.parse(saved) };
+            
+            initAurora();
+
+            const themeGrid = document.getElementById('theme-grid');
+            auroraThemes.forEach((t, i) => {
+                const c = document.createElement('div'); c.className = 'theme-circle';
+                c.style.background = `radial-gradient(circle, ${t.colors[0]} 0%, ${t.colors[1]} 100%)`;
+                c.onclick = () => { state.auroraTheme = i; updateActiveCards(); persist(); };
+                themeGrid.appendChild(c);
+            });
+
+            const modal = document.getElementById('settings-modal');
+            document.getElementById('settings-btn').onclick = () => modal.style.display = 'flex';
+            document.getElementById('modal-cancel').onclick = () => modal.style.display = 'none';
+            modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+            document.querySelectorAll('.preview-card').forEach(card => card.onclick = () => { 
+                state[card.dataset.key] = card.dataset.val; updateActiveCards(); updateClock(); persist();
+            });
+
+            document.getElementById('clock-size-slider').oninput = (e) => { state.clockSize = sizes[e.target.value]; updateClock(); persist(); };
+            document.getElementById('content-scale-slider').oninput = (e) => { 
+                state.contentScale = scaleKeys[e.target.value]; updateClock(); 
+                const wx = document.getElementById('weather-widget'), wr = wx.getBoundingClientRect();
+                updateWeatherScaling(wx, wr.width, wr.height);
+                updateCalendar(); persist();
+            };
+
+            ['seconds', 'date', 'day'].forEach(k => {
+                const el = document.getElementById(`check-${k}`);
+                el.checked = state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`];
+                el.onchange = (e) => { state[`show${k.charAt(0).toUpperCase()+k.slice(1)}`] = e.target.checked; updateClock(); persist(); };
+            });
+
+            applyGrid(); updateActiveCards(); initGridInteraction(); updateCalendar(); fetchWeather();
+            setInterval(fetchWeather, 600000); 
+            
+            const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); }; tick();
+            const dateTick = () => { const now = new Date(), tm = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); setTimeout(() => { updateCalendar(); updateClock(); dateTick(); }, tm - now); }; dateTick();
+
             new ResizeObserver(debounce((es) => {
                 for (let e of es) {
                     const { width: w, height: h } = e.contentRect, el = e.target;
                     if (el.id === 'weather-widget') updateWeatherScaling(el, w, h);
+                    else if (el.id === 'calendar-widget') updateCalendarScaling(el, w, h);
                     else if (el.id === 'clock-widget') {
-                        el.classList.toggle('h-lt-200', h < 200); el.classList.toggle('w-lt-250', w < 250); el.classList.toggle('gt-400', h > 400 && w > 400);
-                        el.classList.toggle('clock-vertical', w < h);
+                        el.classList.toggle('h-lt-200', h < 200); el.classList.toggle('w-lt-250', w < 250);
+                        el.classList.toggle('gt-400', h > 400 && w > 400);
                         if (state.clockStyle !== 'digital') drawAnalogue();
                     }
                 }
             }, 50)).observe(document.getElementById('clock-widget'));
-            document.querySelectorAll('.widget').forEach(w => { if(w.id !== 'clock-widget') new ResizeObserver(debounce((es) => { for(let e of es) if(e.target.id === 'weather-widget') updateWeatherScaling(e.target, e.contentRect.width, e.contentRect.height); }, 50)).observe(w); });
-            applyGrid(); updateActiveCards(); updateCalendar(); fetchWeather();
-            const tick = () => { updateClock(); setTimeout(tick, 1000 - (Date.now() % 1000)); }; tick();
-            window.addEventListener('resize', resizeAurora);
-            if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(()=>{});
+            document.querySelectorAll('.widget').forEach(w => { if(w.id !== 'clock-widget') new ResizeObserver(debounce((es) => { for(let e of es) { if(e.target.id === 'weather-widget') updateWeatherScaling(e.target, e.contentRect.width, e.contentRect.height); if(e.target.id === 'calendar-widget') updateCalendarScaling(e.target, e.contentRect.width, e.contentRect.height); } }, 50)).observe(w); });
+            if (navigator.wakeLock) getWakeLock();
         }
+
+        window.addEventListener('orientationchange', () => { state.gridL = { c: 1, r: 1 }; state.gridP = { r1: 1, r2: 1, r3: 1 }; applyGrid(); updateClock(); persist(); });
+
+        function updateActiveCards() {
+            document.querySelectorAll('.preview-card').forEach(card => card.classList.toggle('active', state[card.dataset.key] === card.dataset.val));
+            document.querySelectorAll('.theme-circle').forEach((c, i) => c.classList.toggle('active', state.auroraTheme === i));
+            document.getElementById('digital-options').style.display = (state.clockStyle === 'digital') ? 'block' : 'none';
+            document.getElementById('analogue-faces').style.display = (state.clockStyle === 'analogue') ? 'block' : 'none';
+            document.getElementById('clock-size-slider').value = sizes.indexOf(state.clockSize);
+            document.getElementById('content-scale-slider').value = scaleKeys.indexOf(state.contentScale);
+        }
+
         init();
     </script>
 </body>
